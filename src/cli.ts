@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { packageName } from "./index.js";
+import { runCli } from "./cli/run.js";
 
-console.error(`${packageName}: CLI implementation is planned for the Printable HTML MVP.`);
-process.exitCode = 1;
+process.exitCode = await runCli(process.argv.slice(2));

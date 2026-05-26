@@ -1,0 +1,80 @@
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+
+import { packageName, packageVersion } from "../meta.js";
+import { renderDocument } from "../render/document.js";
+import { CliUsageError, parseCliArgs } from "./args.js";
+
+export interface CliIo {
+  cwd: string;
+  stderr: Pick<NodeJS.WriteStream, "write">;
+  stdout: Pick<NodeJS.WriteStream, "write">;
+}
+
+export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promise<number> {
+  try {
+    const command = parseCliArgs(argv);
+
+    if (command.kind === "help") {
+      io.stdout.write(getHelpText());
+      return 0;
+    }
+
+    if (command.kind === "version") {
+      io.stdout.write(`${packageName} ${packageVersion}\n`);
+      return 0;
+    }
+
+    const inputPath = path.resolve(io.cwd, command.inputPath);
+    const outputPath = path.resolve(
+      io.cwd,
+      command.outputPath ?? getDefaultOutputPath(command.inputPath)
+    );
+    const markdown = await readFile(inputPath, "utf8");
+    const html = renderDocument(markdown, { title: command.title });
+
+    await mkdir(path.dirname(outputPath), { recursive: true });
+    await writeFile(outputPath, html, "utf8");
+    io.stdout.write(`Wrote ${path.relative(io.cwd, outputPath) || outputPath}\n`);
+
+    return 0;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unexpected error.";
+    const prefix = error instanceof CliUsageError ? "Usage error" : "Error";
+
+    io.stderr.write(`${prefix}: ${message}\n`);
+
+    if (error instanceof CliUsageError) {
+      io.stderr.write(`Run "${packageName} --help" for usage.\n`);
+    }
+
+    return 1;
+  }
+}
+
+export function getHelpText(): string {
+  return `${packageName}
+
+Usage:
+  ${packageName} <input.md> [--output output.html] [--title "Document Title"]
+
+Options:
+  -o, --output <path>  HTML output path. Defaults to input filename with .html extension.
+      --title <title>  Override the document title.
+  -h, --help           Show this help message.
+      --version        Show the current version.
+`;
+}
+
+export function getDefaultOutputPath(inputPath: string): string {
+  const parsedPath = path.parse(inputPath);
+  return path.join(parsedPath.dir, `${parsedPath.name}.html`);
+}
+
+function defaultCliIo(): CliIo {
+  return {
+    cwd: process.cwd(),
+    stderr: process.stderr,
+    stdout: process.stdout
+  };
+}
