@@ -2,7 +2,7 @@ import { parseArgs } from "node:util";
 
 export type CliCommand =
   | { kind: "help" }
-  | { kind: "render"; inputPath: string; outputPath?: string; title?: string }
+  | { cssPath?: string; inputPath: string; kind: "render"; outputPath?: string; title?: string }
   | { kind: "version" };
 
 export class CliUsageError extends Error {
@@ -23,6 +23,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
         help: {
           short: "h",
           type: "boolean"
+        },
+        css: {
+          type: "string"
         },
         output: {
           short: "o",
@@ -54,6 +57,7 @@ export function parseCliArgs(argv: string[]): CliCommand {
   }
 
   return {
+    cssPath: getStringOption(parsed.values.css),
     inputPath: parsed.positionals[0],
     kind: "render",
     outputPath: getStringOption(parsed.values.output),

@@ -35,6 +35,12 @@ pnpm build
 towel-txt document.md -o document.html
 ```
 
+Append a custom CSS file to the built-in print styles:
+
+```bash
+towel-txt document.md -o document.html --css examples/print.css
+```
+
 During local development, run the CLI through pnpm:
 
 ```bash
@@ -47,6 +53,7 @@ The CLI supports:
 - HTML output files.
 - Document title configuration.
 - Front matter metadata for title, author, and date.
+- Custom CSS appended to the default document styles.
 - Heading anchors.
 - Table of contents generation.
 - Default screen and print styles.
@@ -72,6 +79,8 @@ provided on the CLI.
 
 See [examples/sample.md](examples/sample.md) and the generated
 [examples/sample.html](examples/sample.html).
+
+See [examples/print.css](examples/print.css) for a small custom CSS example.
 
 The generated HTML is self-contained, so it can be opened directly in a browser
 and printed from the browser print dialog.

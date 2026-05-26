@@ -40,6 +40,26 @@ describe("runCli", () => {
     expect(html).toContain('<h2 id="summary">Summary</h2>');
   });
 
+  it("appends a custom CSS file when one is provided", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const cssPath = path.join(temporaryDirectory, "print.css");
+    const outputPath = path.join(temporaryDirectory, "brief.html");
+
+    await writeFile(inputPath, "# Brief", "utf8");
+    await writeFile(cssPath, ".document { max-width: 720px; }", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--css", "print.css"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: createBufferedOutput()
+    });
+
+    const html = await readFile(outputPath, "utf8");
+
+    expect(exitCode).toBe(0);
+    expect(html).toContain(".document { max-width: 720px; }");
+  });
+
   it("uses the default output path when output is omitted", async () => {
     const inputPath = path.join(temporaryDirectory, "notes.md");
     const outputPath = path.join(temporaryDirectory, "notes.html");

@@ -3,6 +3,7 @@ import { defaultDocumentStyles } from "../theme/default.js";
 import { renderTableOfContents } from "./toc.js";
 
 export interface RenderDocumentOptions {
+  styles?: string;
   title?: string;
 }
 
@@ -23,7 +24,7 @@ export function renderDocument(markdown: string, options: RenderDocumentOptions 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(title)}</title>
   <style>
-${indent(defaultDocumentStyles, 4)}
+${indent(getDocumentStyles(options.styles), 4)}
   </style>
 </head>
 <body>
@@ -42,6 +43,16 @@ ${indent(renderedMarkdown.html, 6)}
 
 function inferDocumentTitle(headings: { level: number; text: string }[]): string | undefined {
   return headings.find((heading) => heading.level === 1)?.text;
+}
+
+function getDocumentStyles(customStyles: string | undefined): string {
+  if (!customStyles?.trim()) {
+    return defaultDocumentStyles;
+  }
+
+  return `${defaultDocumentStyles}
+
+${customStyles.trim()}`;
 }
 
 function renderMetadata(metadata: { author?: string; date?: string }): string {
