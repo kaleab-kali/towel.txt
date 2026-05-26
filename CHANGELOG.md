@@ -10,6 +10,7 @@ Versioning after the first public release.
 ### Added
 
 - Initial open-source project scaffold.
+- CLI file rendering from Markdown input to printable HTML output.
 - Markdown heading extraction with stable heading IDs.
 - Markdown body HTML rendering with safe raw HTML escaping.
 - Printable HTML document rendering with default screen and print styles.
