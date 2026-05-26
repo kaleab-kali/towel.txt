@@ -11,3 +11,4 @@ Versioning after the first public release.
 
 - Initial open-source project scaffold.
 - Markdown heading extraction with stable heading IDs.
+- Table of contents tree building and HTML rendering.
