@@ -36,6 +36,7 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
       ? await readFile(path.resolve(io.cwd, command.cssPath), "utf8")
       : undefined;
     const html = renderDocument(markdown, {
+      includeTableOfContents: command.tableOfContents,
       margin: command.margin,
       pageSize: command.pageSize,
       styles,
@@ -78,6 +79,7 @@ Usage:
 Options:
       --css <path>     Append a custom CSS file to the default document styles.
       --margin <value> Print page margin, for example "0.75in" or "18mm".
+      --no-toc         Disable automatic table of contents rendering.
   -o, --output <path>  HTML output path. Defaults to input filename with .html extension.
       --page-size <v>  Print page size, for example "letter", "A4", or "A4 landscape".
       --title <title>  Override the document title.
