@@ -2,7 +2,15 @@ import { parseArgs } from "node:util";
 
 export type CliCommand =
   | { kind: "help" }
-  | { cssPath?: string; inputPath: string; kind: "render"; outputPath?: string; title?: string }
+  | {
+      cssPath?: string;
+      inputPath: string;
+      kind: "render";
+      margin?: string;
+      outputPath?: string;
+      pageSize?: string;
+      title?: string;
+    }
   | { kind: "version" };
 
 export class CliUsageError extends Error {
@@ -29,6 +37,12 @@ export function parseCliArgs(argv: string[]): CliCommand {
         },
         output: {
           short: "o",
+          type: "string"
+        },
+        margin: {
+          type: "string"
+        },
+        "page-size": {
           type: "string"
         },
         title: {
@@ -60,7 +74,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
     cssPath: getStringOption(parsed.values.css),
     inputPath: parsed.positionals[0],
     kind: "render",
+    margin: getStringOption(parsed.values.margin),
     outputPath: getStringOption(parsed.values.output),
+    pageSize: getStringOption(parsed.values["page-size"]),
     title: getStringOption(parsed.values.title)
   };
 }

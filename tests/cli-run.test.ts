@@ -60,6 +60,25 @@ describe("runCli", () => {
     expect(html).toContain(".document { max-width: 720px; }");
   });
 
+  it("applies print page options when provided", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "brief.html");
+
+    await writeFile(inputPath, "# Brief", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--page-size", "A4", "--margin", "20mm"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: createBufferedOutput()
+    });
+
+    const html = await readFile(outputPath, "utf8");
+
+    expect(exitCode).toBe(0);
+    expect(html).toContain("size: A4;");
+    expect(html).toContain("margin: 20mm;");
+  });
+
   it("copies relative image assets beside the generated HTML output", async () => {
     const inputPath = path.join(temporaryDirectory, "brief.md");
     const imagePath = path.join(temporaryDirectory, "images", "diagram.png");
