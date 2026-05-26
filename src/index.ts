@@ -8,8 +8,14 @@ export {
 } from "./parser/metadata.js";
 export { parseCliArgs, CliUsageError, type CliCommand } from "./cli/args.js";
 export { getDefaultOutputPath, getHelpText, runCli, type CliIo } from "./cli/run.js";
+export {
+  copyLocalImageAssets,
+  type CopyImageAssetsOptions,
+  type ImageAssetCopyResult
+} from "./cli/assets.js";
 export { packageName, packageVersion } from "./meta.js";
 export { renderDocument, type RenderDocumentOptions } from "./render/document.js";
 export { buildTableOfContents, renderTableOfContents, type TocItem } from "./render/toc.js";
 export { defaultDocumentStyles } from "./theme/default.js";
 export { createHeadingId, createUniqueHeadingId } from "./utils/ids.js";
+export { extractLocalImageSources } from "./parser/images.js";

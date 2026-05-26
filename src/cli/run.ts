@@ -4,6 +4,7 @@ import path from "node:path";
 import { packageName, packageVersion } from "../meta.js";
 import { renderDocument } from "../render/document.js";
 import { CliUsageError, parseCliArgs } from "./args.js";
+import { copyLocalImageAssets } from "./assets.js";
 
 export interface CliIo {
   cwd: string;
@@ -38,6 +39,14 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
 
     await mkdir(path.dirname(outputPath), { recursive: true });
     await writeFile(outputPath, html, "utf8");
+    const imageAssets = await copyLocalImageAssets({ inputPath, markdown, outputPath });
+
+    imageAssets.forEach((asset) => {
+      if (asset.status === "missing") {
+        io.stderr.write(`Warning: image asset "${asset.source}" was not copied: ${asset.error}\n`);
+      }
+    });
+
     io.stdout.write(`Wrote ${path.relative(io.cwd, outputPath) || outputPath}\n`);
 
     return 0;
