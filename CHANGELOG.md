@@ -12,4 +12,5 @@ Versioning after the first public release.
 - Initial open-source project scaffold.
 - Markdown heading extraction with stable heading IDs.
 - Markdown body HTML rendering with safe raw HTML escaping.
+- Printable HTML document rendering with default screen and print styles.
 - Table of contents tree building and HTML rendering.
