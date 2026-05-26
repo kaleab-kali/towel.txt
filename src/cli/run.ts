@@ -31,7 +31,10 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
       command.outputPath ?? getDefaultOutputPath(command.inputPath)
     );
     const markdown = await readFile(inputPath, "utf8");
-    const html = renderDocument(markdown, { title: command.title });
+    const styles = command.cssPath
+      ? await readFile(path.resolve(io.cwd, command.cssPath), "utf8")
+      : undefined;
+    const html = renderDocument(markdown, { styles, title: command.title });
 
     await mkdir(path.dirname(outputPath), { recursive: true });
     await writeFile(outputPath, html, "utf8");
@@ -59,6 +62,7 @@ Usage:
   ${packageName} <input.md> [--output output.html] [--title "Document Title"]
 
 Options:
+      --css <path>     Append a custom CSS file to the default document styles.
   -o, --output <path>  HTML output path. Defaults to input filename with .html extension.
       --title <title>  Override the document title.
   -h, --help           Show this help message.

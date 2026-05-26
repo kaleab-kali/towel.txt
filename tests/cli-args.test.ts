@@ -7,7 +7,10 @@ import { getDefaultOutputPath } from "../src/cli/run.js";
 
 describe("parseCliArgs", () => {
   it("parses an input path with output and title options", () => {
-    expect(parseCliArgs(["doc.md", "--output", "dist/doc.html", "--title", "Doc"])).toEqual({
+    expect(
+      parseCliArgs(["doc.md", "--output", "dist/doc.html", "--title", "Doc", "--css", "theme.css"])
+    ).toEqual({
+      cssPath: "theme.css",
       inputPath: "doc.md",
       kind: "render",
       outputPath: "dist/doc.html",
