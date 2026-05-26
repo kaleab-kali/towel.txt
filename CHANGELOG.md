@@ -10,3 +10,4 @@ Versioning after the first public release.
 ### Added
 
 - Initial open-source project scaffold.
+- Markdown heading extraction with stable heading IDs.
