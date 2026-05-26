@@ -55,6 +55,7 @@ The CLI supports:
 - Front matter metadata for title, author, and date.
 - Custom CSS appended to the default document styles.
 - Heading anchors.
+- Relative local image asset copying.
 - Table of contents generation.
 - Default screen and print styles.
 
@@ -85,6 +86,9 @@ See [examples/print.css](examples/print.css) for a small custom CSS example.
 The generated HTML is self-contained, so it can be opened directly in a browser
 and printed from the browser print dialog.
 
+When output is written to a different directory, safe relative Markdown image
+paths such as `images/diagram.png` are copied beside the generated HTML output.
+
 ## Development
 
 This repository uses Node.js, TypeScript, and pnpm.
@@ -101,7 +105,6 @@ pnpm build
 
 - Printable HTML MVP.
 - Theme support.
-- Local image handling.
 - PDF export through browser automation.
 
 ## Contributing

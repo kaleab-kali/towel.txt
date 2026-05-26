@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
@@ -58,6 +58,41 @@ describe("runCli", () => {
 
     expect(exitCode).toBe(0);
     expect(html).toContain(".document { max-width: 720px; }");
+  });
+
+  it("copies relative image assets beside the generated HTML output", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const imagePath = path.join(temporaryDirectory, "images", "diagram.png");
+    const copiedImagePath = path.join(temporaryDirectory, "dist", "images", "diagram.png");
+
+    await writeFile(inputPath, "![Diagram](images/diagram.png)", "utf8");
+    await mkdir(path.dirname(imagePath), { recursive: true });
+    await writeFile(imagePath, "image-bytes", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--output", "dist/brief.html"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(0);
+    expect(await readFile(copiedImagePath, "utf8")).toBe("image-bytes");
+  });
+
+  it("warns when a relative image asset cannot be copied", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const errors = createBufferedOutput();
+
+    await writeFile(inputPath, "![Missing](images/missing.png)", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--output", "dist/brief.html"], {
+      cwd: temporaryDirectory,
+      stderr: errors,
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(0);
+    expect(errors.value).toContain('Warning: image asset "images/missing.png" was not copied:');
   });
 
   it("uses the default output path when output is omitted", async () => {
