@@ -41,6 +41,12 @@ Append a custom CSS file to the built-in print styles:
 towel-txt document.md -o document.html --css examples/print.css
 ```
 
+Set print page size and margins:
+
+```bash
+towel-txt document.md -o document.html --page-size "A4 landscape" --margin 18mm
+```
+
 During local development, run the CLI through pnpm:
 
 ```bash
@@ -55,6 +61,7 @@ The CLI supports:
 - Front matter metadata for title, author, and date.
 - Custom CSS appended to the default document styles.
 - Heading anchors.
+- Print page size and margin configuration.
 - Relative local image asset copying.
 - Table of contents generation.
 - Default screen and print styles.

@@ -35,7 +35,12 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
     const styles = command.cssPath
       ? await readFile(path.resolve(io.cwd, command.cssPath), "utf8")
       : undefined;
-    const html = renderDocument(markdown, { styles, title: command.title });
+    const html = renderDocument(markdown, {
+      margin: command.margin,
+      pageSize: command.pageSize,
+      styles,
+      title: command.title
+    });
 
     await mkdir(path.dirname(outputPath), { recursive: true });
     await writeFile(outputPath, html, "utf8");
@@ -72,7 +77,9 @@ Usage:
 
 Options:
       --css <path>     Append a custom CSS file to the default document styles.
+      --margin <value> Print page margin, for example "0.75in" or "18mm".
   -o, --output <path>  HTML output path. Defaults to input filename with .html extension.
+      --page-size <v>  Print page size, for example "letter", "A4", or "A4 landscape".
       --title <title>  Override the document title.
   -h, --help           Show this help message.
       --version        Show the current version.

@@ -8,12 +8,26 @@ import { getDefaultOutputPath } from "../src/cli/run.js";
 describe("parseCliArgs", () => {
   it("parses an input path with output and title options", () => {
     expect(
-      parseCliArgs(["doc.md", "--output", "dist/doc.html", "--title", "Doc", "--css", "theme.css"])
+      parseCliArgs([
+        "doc.md",
+        "--output",
+        "dist/doc.html",
+        "--title",
+        "Doc",
+        "--css",
+        "theme.css",
+        "--page-size",
+        "A4 landscape",
+        "--margin",
+        "18mm"
+      ])
     ).toEqual({
       cssPath: "theme.css",
       inputPath: "doc.md",
       kind: "render",
+      margin: "18mm",
       outputPath: "dist/doc.html",
+      pageSize: "A4 landscape",
       title: "Doc"
     });
   });

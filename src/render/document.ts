@@ -1,8 +1,9 @@
 import { renderMarkdown } from "../parser/markdown.js";
 import { defaultDocumentStyles } from "../theme/default.js";
+import { renderPrintPageStyles, type PrintPageOptions } from "./print-options.js";
 import { renderTableOfContents } from "./toc.js";
 
-export interface RenderDocumentOptions {
+export interface RenderDocumentOptions extends PrintPageOptions {
   styles?: string;
   title?: string;
 }
@@ -24,7 +25,7 @@ export function renderDocument(markdown: string, options: RenderDocumentOptions 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(title)}</title>
   <style>
-${indent(getDocumentStyles(options.styles), 4)}
+${indent(getDocumentStyles(options), 4)}
   </style>
 </head>
 <body>
@@ -45,14 +46,14 @@ function inferDocumentTitle(headings: { level: number; text: string }[]): string
   return headings.find((heading) => heading.level === 1)?.text;
 }
 
-function getDocumentStyles(customStyles: string | undefined): string {
-  if (!customStyles?.trim()) {
-    return defaultDocumentStyles;
-  }
+function getDocumentStyles(options: RenderDocumentOptions): string {
+  const styleBlocks = [
+    defaultDocumentStyles,
+    renderPrintPageStyles(options),
+    options.styles?.trim()
+  ].filter((styleBlock): styleBlock is string => Boolean(styleBlock));
 
-  return `${defaultDocumentStyles}
-
-${customStyles.trim()}`;
+  return styleBlocks.join("\n\n");
 }
 
 function renderMetadata(metadata: { author?: string; date?: string }): string {

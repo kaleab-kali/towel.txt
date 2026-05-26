@@ -55,6 +55,20 @@ date: 2026-05-27
     );
   });
 
+  it("adds print page size and margin overrides", () => {
+    const html = renderDocument("# Print", {
+      margin: "18mm",
+      pageSize: "A4 landscape"
+    });
+
+    expect(html).toContain(`@media print {
+      @page {
+        size: A4 landscape;
+        margin: 18mm;
+      }
+    }`);
+  });
+
   it("omits table of contents markup when the document has no headings", () => {
     const html = renderDocument("Plain paragraph.");
 
