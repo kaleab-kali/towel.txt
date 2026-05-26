@@ -1,0 +1,54 @@
+{
+  "name": "towel-txt",
+  "version": "0.0.0",
+  "description": "Markdown to printable HTML document generator.",
+  "type": "module",
+  "bin": {
+    "towel-txt": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "keywords": [
+    "markdown",
+    "print",
+    "html",
+    "document",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kaleab-kali/towel.txt.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kaleab-kali/towel.txt/issues"
+  },
+  "homepage": "https://github.com/kaleab-kali/towel.txt#readme",
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@10.12.1",
+  "devDependencies": {
+    "@eslint/js": "^9.27.0",
+    "@types/node": "^22.15.21",
+    "eslint": "^9.27.0",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.1",
+    "vitest": "^3.1.4"
+  }
+}
