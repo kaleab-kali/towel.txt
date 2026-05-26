@@ -1,3 +1,9 @@
+---
+title: Towel.txt Sample Document
+author: Towel.txt contributors
+date: 2026-05-27
+---
+
 # Towel.txt Sample Document
 
 This sample shows the printable HTML output generated from Markdown.

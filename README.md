@@ -46,9 +46,27 @@ The CLI supports:
 - Markdown input files.
 - HTML output files.
 - Document title configuration.
+- Front matter metadata for title, author, and date.
 - Heading anchors.
 - Table of contents generation.
 - Default screen and print styles.
+
+## Metadata
+
+Documents can include YAML front matter at the top of the Markdown file:
+
+```md
+---
+title: Project Brief
+author: Kaleab
+date: 2026-05-27
+---
+
+# Project Brief
+```
+
+The `title` field controls the generated HTML document title unless `--title` is
+provided on the CLI.
 
 ## Example
 
@@ -74,7 +92,6 @@ pnpm build
 
 - Printable HTML MVP.
 - Theme support.
-- Metadata fields such as title, author, and date.
 - Local image handling.
 - PDF export through browser automation.
 

@@ -25,8 +25,17 @@ body {
   border-bottom: 1px solid #d7dce3;
   font-size: 2.25rem;
   line-height: 1.15;
-  margin: 0 0 2rem;
+  margin: 0 0 1rem;
   padding-bottom: 1rem;
+}
+
+.document-meta {
+  color: #64748b;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.95rem;
+  gap: 0.5rem 1rem;
+  margin: -0.25rem 0 2rem;
 }
 
 .toc {
