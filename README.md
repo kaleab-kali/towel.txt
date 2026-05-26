@@ -9,9 +9,7 @@ output.
 
 ## Status
 
-Towel.txt is in early development. The first public milestone is a minimal CLI
-that reads a Markdown file and writes a self-contained printable HTML file.
-
+Towel.txt can currently generate self-contained printable HTML from Markdown.
 Package publishing and PDF export are planned after the HTML workflow is stable.
 
 ## Goals
@@ -22,13 +20,28 @@ Package publishing and PDF export are planned after the HTML workflow is stable.
 - Keep output simple enough to inspect, customize, and share.
 - Provide a focused CLI that works well in scripts and local workflows.
 
-## Planned Usage
+## Install From Source
+
+```bash
+git clone https://github.com/kaleab-kali/towel.txt.git
+cd towel.txt
+pnpm install
+pnpm build
+```
+
+## Usage
 
 ```bash
 towel-txt document.md -o document.html
 ```
 
-The first release will support:
+During local development, run the CLI through pnpm:
+
+```bash
+pnpm dev examples/sample.md --output examples/sample.html
+```
+
+The CLI supports:
 
 - Markdown input files.
 - HTML output files.
@@ -36,6 +49,14 @@ The first release will support:
 - Heading anchors.
 - Table of contents generation.
 - Default screen and print styles.
+
+## Example
+
+See [examples/sample.md](examples/sample.md) and the generated
+[examples/sample.html](examples/sample.html).
+
+The generated HTML is self-contained, so it can be opened directly in a browser
+and printed from the browser print dialog.
 
 ## Development
 
@@ -52,7 +73,6 @@ pnpm build
 ## Roadmap
 
 - Printable HTML MVP.
-- Sample Markdown and generated sample output.
 - Theme support.
 - Metadata fields such as title, author, and date.
 - Local image handling.
