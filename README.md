@@ -47,6 +47,12 @@ Set print page size and margins:
 towel-txt document.md -o document.html --page-size "A4 landscape" --margin 18mm
 ```
 
+Disable the automatic table of contents:
+
+```bash
+towel-txt document.md -o document.html --no-toc
+```
+
 During local development, run the CLI through pnpm:
 
 ```bash
@@ -64,6 +70,7 @@ The CLI supports:
 - Print page size and margin configuration.
 - Relative local image asset copying.
 - Table of contents generation.
+- Optional table of contents suppression.
 - Default screen and print styles.
 
 ## Metadata

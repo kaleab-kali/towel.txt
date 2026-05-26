@@ -79,6 +79,25 @@ describe("runCli", () => {
     expect(html).toContain("margin: 20mm;");
   });
 
+  it("disables table of contents when requested", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "brief.html");
+
+    await writeFile(inputPath, "# Brief\n\n## Summary", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--no-toc"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: createBufferedOutput()
+    });
+
+    const html = await readFile(outputPath, "utf8");
+
+    expect(exitCode).toBe(0);
+    expect(html).not.toContain('class="toc"');
+    expect(html).toContain('<h2 id="summary">Summary</h2>');
+  });
+
   it("copies relative image assets beside the generated HTML output", async () => {
     const inputPath = path.join(temporaryDirectory, "brief.md");
     const imagePath = path.join(temporaryDirectory, "images", "diagram.png");

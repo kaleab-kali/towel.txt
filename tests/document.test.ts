@@ -74,4 +74,13 @@ date: 2026-05-27
 
     expect(html).not.toContain('class="toc"');
   });
+
+  it("can disable table of contents markup", () => {
+    const html = renderDocument("# Title\n\n## Section", {
+      includeTableOfContents: false
+    });
+
+    expect(html).not.toContain('class="toc"');
+    expect(html).toContain('<h2 id="section">Section</h2>');
+  });
 });

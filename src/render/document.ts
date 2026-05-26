@@ -4,6 +4,7 @@ import { renderPrintPageStyles, type PrintPageOptions } from "./print-options.js
 import { renderTableOfContents } from "./toc.js";
 
 export interface RenderDocumentOptions extends PrintPageOptions {
+  includeTableOfContents?: boolean;
   styles?: string;
   title?: string;
 }
@@ -16,7 +17,10 @@ export function renderDocument(markdown: string, options: RenderDocumentOptions 
     inferDocumentTitle(renderedMarkdown.headings) ??
     "Untitled Document";
   const metadata = renderMetadata(renderedMarkdown.metadata);
-  const toc = renderTableOfContents(renderedMarkdown.headings);
+  const toc =
+    options.includeTableOfContents === false
+      ? ""
+      : renderTableOfContents(renderedMarkdown.headings);
 
   return `<!doctype html>
 <html lang="en">

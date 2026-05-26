@@ -19,7 +19,8 @@ describe("parseCliArgs", () => {
         "--page-size",
         "A4 landscape",
         "--margin",
-        "18mm"
+        "18mm",
+        "--no-toc"
       ])
     ).toEqual({
       cssPath: "theme.css",
@@ -28,7 +29,16 @@ describe("parseCliArgs", () => {
       margin: "18mm",
       outputPath: "dist/doc.html",
       pageSize: "A4 landscape",
+      tableOfContents: false,
       title: "Doc"
+    });
+  });
+
+  it("enables table of contents by default", () => {
+    expect(parseCliArgs(["doc.md"])).toEqual({
+      inputPath: "doc.md",
+      kind: "render",
+      tableOfContents: true
     });
   });
 
