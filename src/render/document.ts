@@ -9,7 +9,11 @@ export interface RenderDocumentOptions {
 export function renderDocument(markdown: string, options: RenderDocumentOptions = {}): string {
   const renderedMarkdown = renderMarkdown(markdown);
   const title =
-    options.title ?? inferDocumentTitle(renderedMarkdown.headings) ?? "Untitled Document";
+    options.title ??
+    renderedMarkdown.metadata.title ??
+    inferDocumentTitle(renderedMarkdown.headings) ??
+    "Untitled Document";
+  const metadata = renderMetadata(renderedMarkdown.metadata);
   const toc = renderTableOfContents(renderedMarkdown.headings);
 
   return `<!doctype html>
@@ -25,6 +29,7 @@ ${indent(defaultDocumentStyles, 4)}
 <body>
   <main class="document">
     <h1 class="document-title">${escapeHtml(title)}</h1>
+${metadata ? indent(metadata, 4) : ""}
 ${toc ? indent(toc, 4) : ""}
     <article class="content">
 ${indent(renderedMarkdown.html, 6)}
@@ -37,6 +42,19 @@ ${indent(renderedMarkdown.html, 6)}
 
 function inferDocumentTitle(headings: { level: number; text: string }[]): string | undefined {
   return headings.find((heading) => heading.level === 1)?.text;
+}
+
+function renderMetadata(metadata: { author?: string; date?: string }): string {
+  const items = [
+    metadata.author ? `<span>By ${escapeHtml(metadata.author)}</span>` : undefined,
+    metadata.date ? `<span>${escapeHtml(metadata.date)}</span>` : undefined
+  ].filter((item): item is string => Boolean(item));
+
+  if (items.length === 0) {
+    return "";
+  }
+
+  return `<p class="document-meta">${items.join(" ")}</p>`;
 }
 
 function indent(value: string, spaces: number): string {

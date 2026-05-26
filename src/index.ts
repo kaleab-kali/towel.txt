@@ -1,5 +1,11 @@
 export { extractHeadings, type Heading } from "./parser/headings.js";
 export { renderMarkdown, type RenderedMarkdown } from "./parser/markdown.js";
+export {
+  MetadataParseError,
+  parseMarkdownInput,
+  type DocumentMetadata,
+  type ParsedMarkdownInput
+} from "./parser/metadata.js";
 export { parseCliArgs, CliUsageError, type CliCommand } from "./cli/args.js";
 export { getDefaultOutputPath, getHelpText, runCli, type CliIo } from "./cli/run.js";
 export { packageName, packageVersion } from "./meta.js";

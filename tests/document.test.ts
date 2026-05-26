@@ -22,6 +22,21 @@ describe("renderDocument", () => {
     expect(html).toContain('<h1 class="document-title">Public Title</h1>');
   });
 
+  it("uses front matter title and renders document metadata", () => {
+    const html = renderDocument(`---
+title: Metadata Title
+author: Kaleab
+date: 2026-05-27
+---
+# Body Title`);
+
+    expect(html).toContain("<title>Metadata Title</title>");
+    expect(html).toContain('<h1 class="document-title">Metadata Title</h1>');
+    expect(html).toContain(
+      '<p class="document-meta"><span>By Kaleab</span> <span>2026-05-27</span></p>'
+    );
+  });
+
   it("escapes the document title", () => {
     const html = renderDocument("", { title: "Research & <Notes>" });
 

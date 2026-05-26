@@ -11,9 +11,22 @@ describe("renderMarkdown", () => {
   });
 
   it("returns extracted headings alongside HTML", () => {
-    expect(renderMarkdown("# Title").headings).toEqual([
-      { id: "title", level: 1, line: 1, text: "Title" }
-    ]);
+    const result = renderMarkdown("# Title");
+
+    expect(result.headings).toEqual([{ id: "title", level: 1, line: 1, text: "Title" }]);
+    expect(result.metadata).toEqual({});
+  });
+
+  it("strips front matter before rendering Markdown", () => {
+    const result = renderMarkdown(`---
+title: Front Matter Title
+---
+# Body Title`);
+
+    expect(result.metadata).toEqual({ title: "Front Matter Title" });
+    expect(result.headings).toEqual([{ id: "body-title", level: 1, line: 4, text: "Body Title" }]);
+    expect(result.html).not.toContain("Front Matter Title");
+    expect(result.html).toContain('<h1 id="body-title">Body Title</h1>');
   });
 
   it("renders common document Markdown features", () => {

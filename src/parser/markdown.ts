@@ -2,14 +2,20 @@ import MarkdownIt from "markdown-it";
 import type Token from "markdown-it/lib/token.mjs";
 
 import { extractHeadings, type Heading } from "./headings.js";
+import { parseMarkdownInput, type DocumentMetadata } from "./metadata.js";
 
 export interface RenderedMarkdown {
   headings: Heading[];
   html: string;
+  metadata: DocumentMetadata;
 }
 
 export function renderMarkdown(markdown: string): RenderedMarkdown {
-  const headings = extractHeadings(markdown);
+  const parsedInput = parseMarkdownInput(markdown);
+  const headings = extractHeadings(parsedInput.content).map((heading) => ({
+    ...heading,
+    line: heading.line + parsedInput.contentLineOffset
+  }));
   const headingIds = headings.map((heading) => heading.id);
   let headingIndex = 0;
 
@@ -37,6 +43,7 @@ export function renderMarkdown(markdown: string): RenderedMarkdown {
 
   return {
     headings,
-    html: parser.render(markdown).trimEnd()
+    html: parser.render(parsedInput.content).trimEnd(),
+    metadata: parsedInput.metadata
   };
 }
