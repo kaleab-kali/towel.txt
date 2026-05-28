@@ -119,6 +119,81 @@ describe("runCli", () => {
     expect(output.value).not.toContain("Wrote ");
   });
 
+  it("does not check output files when writing generated HTML to stdout", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "brief.html");
+    const output = createBufferedOutput();
+
+    await writeFile(inputPath, "# Brief", "utf8");
+    await writeFile(outputPath, "existing html", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--stdout"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: output
+    });
+
+    expect(exitCode).toBe(0);
+    expect(output.value).toContain("<title>Brief</title>");
+    expect(await readFile(outputPath, "utf8")).toBe("existing html");
+  });
+
+  it("refuses to overwrite an existing output file without --force", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "brief.html");
+    const errors = createBufferedOutput();
+
+    await writeFile(inputPath, "# Brief", "utf8");
+    await writeFile(outputPath, "existing html", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--output", "brief.html"], {
+      cwd: temporaryDirectory,
+      stderr: errors,
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(1);
+    expect(errors.value).toContain("Output file already exists. Use --force to overwrite.");
+    expect(await readFile(outputPath, "utf8")).toBe("existing html");
+  });
+
+  it("overwrites an existing output file when --force is provided", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "brief.html");
+
+    await writeFile(inputPath, "# Brief", "utf8");
+    await writeFile(outputPath, "existing html", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--output", "brief.html", "--force"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: createBufferedOutput()
+    });
+
+    const html = await readFile(outputPath, "utf8");
+
+    expect(exitCode).toBe(0);
+    expect(html).toContain("<title>Brief</title>");
+    expect(html).not.toBe("existing html");
+  });
+
+  it("refuses output paths that replace the input Markdown file", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const errors = createBufferedOutput();
+
+    await writeFile(inputPath, "# Brief", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--output", "brief.md", "--force"], {
+      cwd: temporaryDirectory,
+      stderr: errors,
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(1);
+    expect(errors.value).toContain("Output path cannot replace the input Markdown file.");
+    expect(await readFile(inputPath, "utf8")).toBe("# Brief");
+  });
+
   it("reads Markdown from stdin and writes generated HTML to stdout", async () => {
     const output = createBufferedOutput();
 
@@ -132,6 +207,43 @@ describe("runCli", () => {
     expect(exitCode).toBe(0);
     expect(output.value).toContain("<title>Piped Document</title>");
     expect(output.value).toContain('<h1 id="piped-document">Piped Document</h1>');
+  });
+
+  it("requires --force before stdin output overwrites an existing file", async () => {
+    const outputPath = path.join(temporaryDirectory, "piped.html");
+    const errors = createBufferedOutput();
+
+    await writeFile(outputPath, "existing html", "utf8");
+
+    const exitCode = await runCli(["--stdin", "--output", "piped.html"], {
+      cwd: temporaryDirectory,
+      stderr: errors,
+      stdin: Readable.from(["# Piped Document"]),
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(1);
+    expect(errors.value).toContain("Output file already exists. Use --force to overwrite.");
+    expect(await readFile(outputPath, "utf8")).toBe("existing html");
+  });
+
+  it("allows stdin output to overwrite an existing file with --force", async () => {
+    const outputPath = path.join(temporaryDirectory, "piped.html");
+
+    await writeFile(outputPath, "existing html", "utf8");
+
+    const exitCode = await runCli(["--stdin", "--output", "piped.html", "--force"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdin: Readable.from(["# Piped Document"]),
+      stdout: createBufferedOutput()
+    });
+
+    const html = await readFile(outputPath, "utf8");
+
+    expect(exitCode).toBe(0);
+    expect(html).toContain("<title>Piped Document</title>");
+    expect(html).not.toBe("existing html");
   });
 
   it("requires an output target when reading Markdown from stdin", async () => {

@@ -4,6 +4,7 @@ export type CliCommand =
   | { kind: "help" }
   | {
       cssPath?: string;
+      force: boolean;
       inputPath?: string;
       kind: "render";
       margin?: string;
@@ -37,6 +38,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
         },
         css: {
           type: "string"
+        },
+        force: {
+          type: "boolean"
         },
         output: {
           short: "o",
@@ -88,6 +92,7 @@ export function parseCliArgs(argv: string[]): CliCommand {
 
   return {
     cssPath: getStringOption(parsed.values.css),
+    force: parsed.values.force === true,
     ...(parsed.positionals[0] ? { inputPath: parsed.positionals[0] } : {}),
     kind: "render",
     margin: getStringOption(parsed.values.margin),
