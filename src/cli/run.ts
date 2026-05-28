@@ -1,7 +1,10 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { Readable } from "node:stream";
 
 import { packageName, packageVersion } from "../meta.js";
+import { extractHeadings } from "../parser/headings.js";
+import { parseMarkdownInput } from "../parser/metadata.js";
 import { renderDocument } from "../render/document.js";
 import { CliUsageError, parseCliArgs } from "./args.js";
 import { copyLocalImageAssets } from "./assets.js";
@@ -9,6 +12,7 @@ import { copyLocalImageAssets } from "./assets.js";
 export interface CliIo {
   cwd: string;
   stderr: Pick<NodeJS.WriteStream, "write">;
+  stdin?: NodeJS.ReadableStream;
   stdout: Pick<NodeJS.WriteStream, "write">;
 }
 
@@ -26,12 +30,24 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
       return 0;
     }
 
-    const inputPath = path.resolve(io.cwd, command.inputPath);
-    const outputPath = path.resolve(
-      io.cwd,
-      command.outputPath ?? getDefaultOutputPath(command.inputPath)
-    );
-    const markdown = await readFile(inputPath, "utf8");
+    if (command.stdin && !command.stdout && !command.outputPath) {
+      throw new CliUsageError("Expected --output or --stdout when reading from stdin.");
+    }
+
+    const inputPath = command.inputPath ? path.resolve(io.cwd, command.inputPath) : undefined;
+    const outputPath = command.stdout
+      ? undefined
+      : path.resolve(io.cwd, command.outputPath ?? getDefaultOutputPath(command.inputPath ?? ""));
+    const markdown = command.stdin
+      ? await readStdin(io.stdin ?? Readable.from([]))
+      : await readFile(requiredInputPath(inputPath), "utf8");
+
+    if (command.stdin && !hasTitleSource(markdown, command.title)) {
+      throw new CliUsageError(
+        "Expected --title, front matter title, or H1 when reading from stdin."
+      );
+    }
+
     const styles = command.cssPath
       ? await readFile(path.resolve(io.cwd, command.cssPath), "utf8")
       : undefined;
@@ -48,9 +64,15 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
       return 0;
     }
 
-    await mkdir(path.dirname(outputPath), { recursive: true });
-    await writeFile(outputPath, html, "utf8");
-    const imageAssets = await copyLocalImageAssets({ inputPath, markdown, outputPath });
+    await mkdir(path.dirname(requiredOutputPath(outputPath)), { recursive: true });
+    await writeFile(requiredOutputPath(outputPath), html, "utf8");
+    const imageAssets = inputPath
+      ? await copyLocalImageAssets({
+          inputPath,
+          markdown,
+          outputPath: requiredOutputPath(outputPath)
+        })
+      : [];
 
     imageAssets.forEach((asset) => {
       if (asset.status === "missing") {
@@ -58,7 +80,9 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
       }
     });
 
-    io.stdout.write(`Wrote ${path.relative(io.cwd, outputPath) || outputPath}\n`);
+    io.stdout.write(
+      `Wrote ${path.relative(io.cwd, requiredOutputPath(outputPath)) || outputPath}\n`
+    );
 
     return 0;
   } catch (error) {
@@ -80,6 +104,7 @@ export function getHelpText(): string {
 
 Usage:
   ${packageName} <input.md> [--output output.html] [--title "Document Title"]
+  ${packageName} --stdin --stdout [--title "Document Title"]
 
 Options:
       --css <path>     Append a custom CSS file to the default document styles.
@@ -87,6 +112,7 @@ Options:
       --no-toc         Disable automatic table of contents rendering.
   -o, --output <path>  HTML output path. Defaults to input filename with .html extension.
       --page-size <v>  Print page size, for example "letter", "A4", or "A4 landscape".
+      --stdin          Read Markdown input from stdin instead of a file.
       --stdout         Write generated HTML to stdout instead of a file.
       --title <title>  Override the document title.
   -h, --help           Show this help message.
@@ -103,6 +129,51 @@ function defaultCliIo(): CliIo {
   return {
     cwd: process.cwd(),
     stderr: process.stderr,
+    stdin: process.stdin,
     stdout: process.stdout
   };
+}
+
+function hasTitleSource(markdown: string, title: string | undefined): boolean {
+  if (title?.trim()) {
+    return true;
+  }
+
+  const parsedInput = parseMarkdownInput(markdown);
+
+  return Boolean(
+    parsedInput.metadata.title?.trim() ||
+    extractHeadings(parsedInput.content).some((heading) => heading.level === 1)
+  );
+}
+
+function readStdin(stdin: NodeJS.ReadableStream): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+
+    Readable.from(stdin)
+      .on("data", (chunk: string | Buffer) => {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      })
+      .on("error", reject)
+      .on("end", () => {
+        resolve(Buffer.concat(chunks).toString("utf8"));
+      });
+  });
+}
+
+function requiredInputPath(inputPath: string | undefined): string {
+  if (!inputPath) {
+    throw new CliUsageError("Expected exactly one Markdown input file.");
+  }
+
+  return inputPath;
+}
+
+function requiredOutputPath(outputPath: string | undefined): string {
+  if (!outputPath) {
+    throw new CliUsageError("Expected --output or --stdout when reading from stdin.");
+  }
+
+  return outputPath;
 }
