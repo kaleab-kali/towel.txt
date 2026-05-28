@@ -19,6 +19,7 @@ Package publishing is planned after the core document workflow is stable.
 - Generate a table of contents from document headings.
 - Include print-friendly CSS by default.
 - Highlight common code fences with print-friendly colors.
+- Render footnotes with backlinks for longer documents.
 - Keep output simple enough to inspect, customize, and share.
 - Provide a focused CLI that works well in scripts and local workflows.
 
@@ -121,6 +122,7 @@ The CLI supports:
 - HTML output files.
 - PDF output files through Chrome, Edge, or Chromium.
 - Syntax highlighting for JavaScript, TypeScript, JSON, and shell code fences.
+- Footnotes using `[^label]` references and matching definitions.
 - Document title configuration.
 - Front matter metadata for title, author, and date.
 - Custom CSS appended to the default document styles.
@@ -153,6 +155,20 @@ date: 2026-05-27
 
 The `title` field controls the generated HTML document title unless `--title` is
 provided on the CLI.
+
+## Footnotes
+
+Use `[^label]` references in the document body and matching definitions later in
+the Markdown file:
+
+```md
+Detailed context can live in a note.[^context]
+
+[^context]: Footnotes support Markdown such as **strong text** and links.
+```
+
+Generated footnotes are rendered at the end of the document with backlinks to
+their references.
 
 ## Configuration
 

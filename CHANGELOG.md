@@ -26,6 +26,7 @@ Versioning after the first public release.
 - Print page size and margin options for generated HTML documents.
 - Printable HTML document rendering with default screen and print styles.
 - Project config files with `--config` and `--no-config`.
+- Print-friendly footnotes with backlinks.
 - Stdin Markdown input with `--stdin`.
 - Stdout HTML output with `--stdout`.
 - Syntax highlighting for JavaScript, TypeScript, JSON, and shell code fences.

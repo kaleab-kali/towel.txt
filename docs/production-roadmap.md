@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `feat/footnotes-support`
+### `feat/document-cover-page`
 
-Enable Markdown footnotes with print-friendly footnote styling.
+Add an optional cover page from document metadata.
 
 ## Completed Features
 
@@ -41,34 +41,34 @@ Enable Markdown footnotes with print-friendly footnote styling.
    - Add print-friendly code highlighting.
    - Keep raw HTML disabled.
 
-## Feature Backlog
-
-1. `feat/footnotes-support`
+8. `feat/footnotes-support`
    - Enable Markdown footnotes.
    - Add print-friendly footnote styling.
 
-2. `feat/document-cover-page`
+## Feature Backlog
+
+1. `feat/document-cover-page`
    - Add an optional cover page from metadata.
    - Support title, subtitle, author, and date.
 
-3. `feat/page-break-controls`
+2. `feat/page-break-controls`
    - Support explicit page breaks.
    - Add CSS helpers for avoiding awkward breaks.
 
-4. `feat/image-validation`
+3. `feat/image-validation`
    - Improve image diagnostics.
    - Report copied, skipped, and missing images clearly.
 
-5. `feat/asset-output-directory`
+4. `feat/asset-output-directory`
    - Allow copied assets to be placed under a configured folder.
 
-6. `feat/html-minify-option`
+5. `feat/html-minify-option`
    - Add optional minified HTML output.
 
-7. `feat/json-summary-output`
+6. `feat/json-summary-output`
    - Emit a machine-readable summary for CI and scripts.
 
-8. `feat/strict-mode`
+7. `feat/strict-mode`
    - Fail on missing images, invalid metadata, or warnings.
 
 ## Production Hardening

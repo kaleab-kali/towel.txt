@@ -50,6 +50,54 @@ const answer = 42;
     expect(result.html).toContain('<span class="syntax-number">42</span>');
   });
 
+  it("renders footnote references and definitions", () => {
+    const result = renderMarkdown(`Paragraph with a footnote[^later] and another[^first].
+
+[^first]: First **note**.
+[^later]: Later note.`);
+
+    expect(result.html).toContain(
+      '<sup class="footnote-ref"><a id="fnref-1" href="#fn-1" aria-label="Footnote 1">1</a></sup>'
+    );
+    expect(result.html).toContain(
+      '<sup class="footnote-ref"><a id="fnref-2" href="#fn-2" aria-label="Footnote 2">2</a></sup>'
+    );
+    expect(result.html.indexOf('id="fn-1"')).toBeLessThan(result.html.indexOf('id="fn-2"'));
+    expect(result.html).toContain('<section class="footnotes" aria-label="Footnotes">');
+    expect(result.html).toContain("<p>Later note.");
+    expect(result.html).toContain("<p>First <strong>note</strong>.");
+    expect(result.html).not.toContain("[^first]:");
+    expect(result.html).not.toContain("[^later]:");
+  });
+
+  it("keeps undefined footnote references as text", () => {
+    expect(renderMarkdown("Missing reference[^unknown].").html).toContain(
+      "Missing reference[^unknown]."
+    );
+  });
+
+  it("adds a backlink for each repeated footnote reference", () => {
+    const result = renderMarkdown(`Repeat[^same] and repeat again[^same].
+
+[^same]: Shared note.`);
+
+    expect(result.html).toContain('id="fnref-1"');
+    expect(result.html).toContain('id="fnref-1-2"');
+    expect(result.html).toContain('href="#fnref-1"');
+    expect(result.html).toContain('href="#fnref-1-2"');
+  });
+
+  it("renders indented multi-line footnote definitions", () => {
+    const result = renderMarkdown(`Paragraph[^note].
+
+  [^note]: First line
+    continued with **Markdown**.`);
+
+    expect(result.html).toContain("First line");
+    expect(result.html).toContain("continued with <strong>Markdown</strong>.");
+    expect(result.html).not.toContain("[^note]:");
+  });
+
   it("does not render raw HTML from Markdown input", () => {
     expect(renderMarkdown("<script>alert('xss')</script>").html).toContain(
       "&lt;script&gt;alert('xss')&lt;/script&gt;"

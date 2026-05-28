@@ -146,6 +146,44 @@ body {
   background: #f8fafc;
 }
 
+.footnotes {
+  border-top: 1px solid #d7dce3;
+  color: #475569;
+  font-size: 0.92rem;
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+}
+
+.footnotes ol {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.footnotes li {
+  margin: 0 0 0.5rem;
+}
+
+.footnotes p {
+  margin: 0 0 0.5rem;
+}
+
+.footnote-ref {
+  font-size: 0.75em;
+  line-height: 0;
+  vertical-align: super;
+}
+
+.footnote-ref a,
+.footnote-backref {
+  color: #0f766e;
+  text-decoration: none;
+}
+
+.footnote-backref {
+  font-size: 0.85em;
+  margin-left: 0.25rem;
+}
+
 @media print {
   @page {
     margin: 0.75in;
@@ -165,7 +203,8 @@ body {
   .toc,
   .content blockquote,
   .content pre,
-  .content table {
+  .content table,
+  .footnotes li {
     break-inside: avoid;
   }
 
@@ -207,6 +246,11 @@ body {
   }
 
   .toc a {
+    color: inherit;
+  }
+
+  .footnote-ref a,
+  .footnote-backref {
     color: inherit;
   }
 }

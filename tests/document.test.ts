@@ -72,6 +72,14 @@ date: 2026-05-27
     expect(html).toContain('<span class="syntax-keyword">const</span>');
   });
 
+  it("includes print-friendly footnote styles", () => {
+    const html = renderDocument("Paragraph[^note].\n\n[^note]: Footnote content.");
+
+    expect(html).toContain(".footnotes");
+    expect(html).toContain(".footnote-ref");
+    expect(html).toContain('<section class="footnotes" aria-label="Footnotes">');
+  });
+
   it("adds print page size and margin overrides", () => {
     const html = renderDocument("# Print", {
       margin: "18mm",
