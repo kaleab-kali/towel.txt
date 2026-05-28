@@ -2,6 +2,7 @@ import MarkdownIt from "markdown-it";
 import type Token from "markdown-it/lib/token.mjs";
 
 import { extractHeadings, type Heading } from "./headings.js";
+import { highlightCode } from "./highlight.js";
 import { parseMarkdownInput, type DocumentMetadata } from "./metadata.js";
 
 export interface RenderedMarkdown {
@@ -20,6 +21,7 @@ export function renderMarkdown(markdown: string): RenderedMarkdown {
   let headingIndex = 0;
 
   const parser = new MarkdownIt({
+    highlight: highlightCode,
     html: false,
     linkify: false,
     typographer: false

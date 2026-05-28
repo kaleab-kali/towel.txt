@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `feat/syntax-highlighting`
+### `feat/footnotes-support`
 
-Add print-friendly code highlighting.
+Enable Markdown footnotes with print-friendly footnote styling.
 
 ## Completed Features
 
@@ -37,38 +37,38 @@ Add print-friendly code highlighting.
    - Add named themes.
    - Start with default, compact, and report themes.
 
-## Feature Backlog
-
-1. `feat/syntax-highlighting`
+7. `feat/syntax-highlighting`
    - Add print-friendly code highlighting.
    - Keep raw HTML disabled.
 
-2. `feat/footnotes-support`
+## Feature Backlog
+
+1. `feat/footnotes-support`
    - Enable Markdown footnotes.
    - Add print-friendly footnote styling.
 
-3. `feat/document-cover-page`
+2. `feat/document-cover-page`
    - Add an optional cover page from metadata.
    - Support title, subtitle, author, and date.
 
-4. `feat/page-break-controls`
+3. `feat/page-break-controls`
    - Support explicit page breaks.
    - Add CSS helpers for avoiding awkward breaks.
 
-5. `feat/image-validation`
+4. `feat/image-validation`
    - Improve image diagnostics.
    - Report copied, skipped, and missing images clearly.
 
-6. `feat/asset-output-directory`
+5. `feat/asset-output-directory`
    - Allow copied assets to be placed under a configured folder.
 
-7. `feat/html-minify-option`
+6. `feat/html-minify-option`
    - Add optional minified HTML output.
 
-8. `feat/json-summary-output`
+7. `feat/json-summary-output`
    - Emit a machine-readable summary for CI and scripts.
 
-9. `feat/strict-mode`
+8. `feat/strict-mode`
    - Fail on missing images, invalid metadata, or warnings.
 
 ## Production Hardening
