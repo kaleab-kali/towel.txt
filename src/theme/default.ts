@@ -106,6 +106,30 @@ body {
   padding: 0;
 }
 
+.syntax-keyword,
+.syntax-command {
+  color: #93c5fd;
+  font-weight: 600;
+}
+
+.syntax-string {
+  color: #bbf7d0;
+}
+
+.syntax-number,
+.syntax-literal {
+  color: #fde68a;
+}
+
+.syntax-comment {
+  color: #cbd5e1;
+  font-style: italic;
+}
+
+.syntax-flag {
+  color: #fbcfe8;
+}
+
 .content table {
   border-collapse: collapse;
   width: 100%;
@@ -152,6 +176,34 @@ body {
   .content h5,
   .content h6 {
     break-after: avoid;
+  }
+
+  .content pre {
+    background: #f8fafc;
+    border: 1px solid #d7dce3;
+    color: #111827;
+  }
+
+  .syntax-keyword,
+  .syntax-command {
+    color: #1d4ed8;
+  }
+
+  .syntax-string {
+    color: #166534;
+  }
+
+  .syntax-number,
+  .syntax-literal {
+    color: #92400e;
+  }
+
+  .syntax-comment {
+    color: #64748b;
+  }
+
+  .syntax-flag {
+    color: #be185d;
   }
 
   .toc a {

@@ -46,6 +46,8 @@ const answer = 42;
     expect(result.html).toContain("<blockquote>");
     expect(result.html).toContain("<table>");
     expect(result.html).toContain('<code class="language-ts">');
+    expect(result.html).toContain('<span class="syntax-keyword">const</span>');
+    expect(result.html).toContain('<span class="syntax-number">42</span>');
   });
 
   it("does not render raw HTML from Markdown input", () => {

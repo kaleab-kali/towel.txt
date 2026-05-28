@@ -64,6 +64,14 @@ date: 2026-05-27
     expect(html).toContain("max-width: 760px;");
   });
 
+  it("includes print-friendly syntax highlighting styles", () => {
+    const html = renderDocument("```ts\nconst answer = 42;\n```");
+
+    expect(html).toContain(".syntax-keyword");
+    expect(html).toContain("background: #f8fafc;");
+    expect(html).toContain('<span class="syntax-keyword">const</span>');
+  });
+
   it("adds print page size and margin overrides", () => {
     const html = renderDocument("# Print", {
       margin: "18mm",

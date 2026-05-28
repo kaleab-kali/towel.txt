@@ -18,6 +18,7 @@ Package publishing is planned after the core document workflow is stable.
 - Convert Markdown files into readable HTML documents.
 - Generate a table of contents from document headings.
 - Include print-friendly CSS by default.
+- Highlight common code fences with print-friendly colors.
 - Keep output simple enough to inspect, customize, and share.
 - Provide a focused CLI that works well in scripts and local workflows.
 
@@ -119,6 +120,7 @@ The CLI supports:
 - Markdown input files.
 - HTML output files.
 - PDF output files through Chrome, Edge, or Chromium.
+- Syntax highlighting for JavaScript, TypeScript, JSON, and shell code fences.
 - Document title configuration.
 - Front matter metadata for title, author, and date.
 - Custom CSS appended to the default document styles.
