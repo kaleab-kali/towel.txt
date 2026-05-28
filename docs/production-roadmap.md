@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `feat/watch-mode`
+### `feat/config-file`
 
-Rebuild output when Markdown or CSS files change.
+Support a project config file for common defaults.
 
 ## Completed Features
 
@@ -25,50 +25,50 @@ Rebuild output when Markdown or CSS files change.
    - Add PDF generation through browser print automation.
    - Respect page size, margin, CSS, and TOC options.
 
-## Feature Backlog
-
-1. `feat/watch-mode`
+4. `feat/watch-mode`
    - Rebuild output when Markdown or CSS files change.
    - Keep watch behavior scoped to local development.
 
-2. `feat/config-file`
+## Feature Backlog
+
+1. `feat/config-file`
    - Support a project config file for common defaults.
    - Include output, page, margin, CSS, and TOC settings.
 
-3. `feat/theme-system`
+2. `feat/theme-system`
    - Add named themes.
    - Start with default, compact, and report themes.
 
-4. `feat/syntax-highlighting`
+3. `feat/syntax-highlighting`
    - Add print-friendly code highlighting.
    - Keep raw HTML disabled.
 
-5. `feat/footnotes-support`
+4. `feat/footnotes-support`
    - Enable Markdown footnotes.
    - Add print-friendly footnote styling.
 
-6. `feat/document-cover-page`
+5. `feat/document-cover-page`
    - Add an optional cover page from metadata.
    - Support title, subtitle, author, and date.
 
-7. `feat/page-break-controls`
+6. `feat/page-break-controls`
    - Support explicit page breaks.
    - Add CSS helpers for avoiding awkward breaks.
 
-8. `feat/image-validation`
+7. `feat/image-validation`
    - Improve image diagnostics.
    - Report copied, skipped, and missing images clearly.
 
-9. `feat/asset-output-directory`
+8. `feat/asset-output-directory`
    - Allow copied assets to be placed under a configured folder.
 
-10. `feat/html-minify-option`
-    - Add optional minified HTML output.
+9. `feat/html-minify-option`
+   - Add optional minified HTML output.
 
-11. `feat/json-summary-output`
+10. `feat/json-summary-output`
     - Emit a machine-readable summary for CI and scripts.
 
-12. `feat/strict-mode`
+11. `feat/strict-mode`
     - Fail on missing images, invalid metadata, or warnings.
 
 ## Production Hardening

@@ -18,6 +18,7 @@ export type CliCommand =
       stdin: boolean;
       tableOfContents: boolean;
       title?: string;
+      watch: boolean;
     }
   | { kind: "version" };
 
@@ -76,6 +77,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
         },
         version: {
           type: "boolean"
+        },
+        watch: {
+          type: "boolean"
         }
       },
       strict: true
@@ -113,7 +117,8 @@ export function parseCliArgs(argv: string[]): CliCommand {
     stdin: parsed.values.stdin === true,
     stdout: parsed.values.stdout === true,
     tableOfContents: parsed.values["no-toc"] !== true,
-    title: getStringOption(parsed.values.title)
+    title: getStringOption(parsed.values.title),
+    watch: parsed.values.watch === true
   };
 }
 

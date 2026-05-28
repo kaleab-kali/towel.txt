@@ -66,6 +66,12 @@ Use a specific browser executable for PDF export:
 towel-txt document.md --format pdf -o document.pdf --browser /path/to/chrome
 ```
 
+Rebuild output when the Markdown or custom CSS file changes:
+
+```bash
+towel-txt document.md -o document.html --watch
+```
+
 Overwrite an existing output file intentionally:
 
 ```bash
@@ -110,6 +116,7 @@ The CLI supports:
 - Relative local image asset copying.
 - Table of contents generation.
 - Optional table of contents suppression.
+- Watch mode for rebuilding file output during local editing.
 - Stdout output for shell pipelines.
 - Stdin input for shell pipelines.
 - Default screen and print styles.

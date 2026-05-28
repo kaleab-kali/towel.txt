@@ -27,3 +27,4 @@ Versioning after the first public release.
 - Stdin Markdown input with `--stdin`.
 - Stdout HTML output with `--stdout`.
 - Table of contents tree building and HTML rendering.
+- Watch mode with `--watch` for local Markdown and CSS rebuilds.
