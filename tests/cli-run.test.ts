@@ -98,6 +98,26 @@ describe("runCli", () => {
     expect(html).toContain('<h2 id="summary">Summary</h2>');
   });
 
+  it("writes generated HTML to stdout when requested", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "brief.html");
+    const output = createBufferedOutput();
+
+    await writeFile(inputPath, "# Brief", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--stdout"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: output
+    });
+
+    await expect(readFile(outputPath, "utf8")).rejects.toThrow();
+    expect(exitCode).toBe(0);
+    expect(output.value).toContain("<!doctype html>");
+    expect(output.value).toContain("<title>Brief</title>");
+    expect(output.value).not.toContain("Wrote ");
+  });
+
   it("copies relative image assets beside the generated HTML output", async () => {
     const inputPath = path.join(temporaryDirectory, "brief.md");
     const imagePath = path.join(temporaryDirectory, "images", "diagram.png");

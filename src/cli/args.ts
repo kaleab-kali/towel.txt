@@ -9,6 +9,7 @@ export type CliCommand =
       margin?: string;
       outputPath?: string;
       pageSize?: string;
+      stdout: boolean;
       tableOfContents: boolean;
       title?: string;
     }
@@ -49,6 +50,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
         "no-toc": {
           type: "boolean"
         },
+        stdout: {
+          type: "boolean"
+        },
         title: {
           type: "string"
         },
@@ -81,6 +85,7 @@ export function parseCliArgs(argv: string[]): CliCommand {
     margin: getStringOption(parsed.values.margin),
     outputPath: getStringOption(parsed.values.output),
     pageSize: getStringOption(parsed.values["page-size"]),
+    stdout: parsed.values.stdout === true,
     tableOfContents: parsed.values["no-toc"] !== true,
     title: getStringOption(parsed.values.title)
   };
