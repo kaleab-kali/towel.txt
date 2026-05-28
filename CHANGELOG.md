@@ -12,6 +12,7 @@ Versioning after the first public release.
 - Initial open-source project scaffold.
 - CLI file rendering from Markdown input to printable HTML output.
 - Custom CSS support for generated HTML documents.
+- Documented the production readiness roadmap.
 - Example Markdown document and generated printable HTML output.
 - Example custom print CSS file.
 - Front matter metadata parsing for document title, author, and date fields.
