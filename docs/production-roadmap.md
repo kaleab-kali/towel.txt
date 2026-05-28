@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `feat/config-file`
+### `feat/theme-system`
 
-Support a project config file for common defaults.
+Add named themes.
 
 ## Completed Features
 
@@ -29,46 +29,46 @@ Support a project config file for common defaults.
    - Rebuild output when Markdown or CSS files change.
    - Keep watch behavior scoped to local development.
 
-## Feature Backlog
-
-1. `feat/config-file`
+5. `feat/config-file`
    - Support a project config file for common defaults.
    - Include output, page, margin, CSS, and TOC settings.
 
-2. `feat/theme-system`
+## Feature Backlog
+
+1. `feat/theme-system`
    - Add named themes.
    - Start with default, compact, and report themes.
 
-3. `feat/syntax-highlighting`
+2. `feat/syntax-highlighting`
    - Add print-friendly code highlighting.
    - Keep raw HTML disabled.
 
-4. `feat/footnotes-support`
+3. `feat/footnotes-support`
    - Enable Markdown footnotes.
    - Add print-friendly footnote styling.
 
-5. `feat/document-cover-page`
+4. `feat/document-cover-page`
    - Add an optional cover page from metadata.
    - Support title, subtitle, author, and date.
 
-6. `feat/page-break-controls`
+5. `feat/page-break-controls`
    - Support explicit page breaks.
    - Add CSS helpers for avoiding awkward breaks.
 
-7. `feat/image-validation`
+6. `feat/image-validation`
    - Improve image diagnostics.
    - Report copied, skipped, and missing images clearly.
 
-8. `feat/asset-output-directory`
+7. `feat/asset-output-directory`
    - Allow copied assets to be placed under a configured folder.
 
-9. `feat/html-minify-option`
+8. `feat/html-minify-option`
    - Add optional minified HTML output.
 
-10. `feat/json-summary-output`
-    - Emit a machine-readable summary for CI and scripts.
+9. `feat/json-summary-output`
+   - Emit a machine-readable summary for CI and scripts.
 
-11. `feat/strict-mode`
+10. `feat/strict-mode`
     - Fail on missing images, invalid metadata, or warnings.
 
 ## Production Hardening
