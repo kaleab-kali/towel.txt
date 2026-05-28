@@ -43,6 +43,11 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
       title: command.title
     });
 
+    if (command.stdout) {
+      io.stdout.write(html);
+      return 0;
+    }
+
     await mkdir(path.dirname(outputPath), { recursive: true });
     await writeFile(outputPath, html, "utf8");
     const imageAssets = await copyLocalImageAssets({ inputPath, markdown, outputPath });
@@ -82,6 +87,7 @@ Options:
       --no-toc         Disable automatic table of contents rendering.
   -o, --output <path>  HTML output path. Defaults to input filename with .html extension.
       --page-size <v>  Print page size, for example "letter", "A4", or "A4 landscape".
+      --stdout         Write generated HTML to stdout instead of a file.
       --title <title>  Override the document title.
   -h, --help           Show this help message.
       --version        Show the current version.

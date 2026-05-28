@@ -21,4 +21,5 @@ Versioning after the first public release.
 - Optional table of contents suppression with `--no-toc`.
 - Print page size and margin options for generated HTML documents.
 - Printable HTML document rendering with default screen and print styles.
+- Stdout HTML output with `--stdout`.
 - Table of contents tree building and HTML rendering.

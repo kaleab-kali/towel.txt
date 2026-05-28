@@ -53,6 +53,12 @@ Disable the automatic table of contents:
 towel-txt document.md -o document.html --no-toc
 ```
 
+Write generated HTML to stdout for piping:
+
+```bash
+towel-txt document.md --stdout
+```
+
 During local development, run the CLI through pnpm:
 
 ```bash
@@ -71,6 +77,7 @@ The CLI supports:
 - Relative local image asset copying.
 - Table of contents generation.
 - Optional table of contents suppression.
+- Stdout output for shell pipelines.
 - Default screen and print styles.
 
 ## Metadata

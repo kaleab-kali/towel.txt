@@ -20,7 +20,8 @@ describe("parseCliArgs", () => {
         "A4 landscape",
         "--margin",
         "18mm",
-        "--no-toc"
+        "--no-toc",
+        "--stdout"
       ])
     ).toEqual({
       cssPath: "theme.css",
@@ -29,6 +30,7 @@ describe("parseCliArgs", () => {
       margin: "18mm",
       outputPath: "dist/doc.html",
       pageSize: "A4 landscape",
+      stdout: true,
       tableOfContents: false,
       title: "Doc"
     });
@@ -38,6 +40,7 @@ describe("parseCliArgs", () => {
     expect(parseCliArgs(["doc.md"])).toEqual({
       inputPath: "doc.md",
       kind: "render",
+      stdout: false,
       tableOfContents: true
     });
   });
