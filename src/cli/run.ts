@@ -1,4 +1,5 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { constants } from "node:fs";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
 
@@ -38,6 +39,15 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
     const outputPath = command.stdout
       ? undefined
       : path.resolve(io.cwd, command.outputPath ?? getDefaultOutputPath(command.inputPath ?? ""));
+
+    if (!command.stdout) {
+      await assertCanWriteOutput({
+        force: command.force,
+        inputPath,
+        outputPath: requiredOutputPath(outputPath)
+      });
+    }
+
     const markdown = command.stdin
       ? await readStdin(io.stdin ?? Readable.from([]))
       : await readFile(requiredInputPath(inputPath), "utf8");
@@ -108,6 +118,7 @@ Usage:
 
 Options:
       --css <path>     Append a custom CSS file to the default document styles.
+      --force          Overwrite an existing output file.
       --margin <value> Print page margin, for example "0.75in" or "18mm".
       --no-toc         Disable automatic table of contents rendering.
   -o, --output <path>  HTML output path. Defaults to input filename with .html extension.
@@ -145,6 +156,50 @@ function hasTitleSource(markdown: string, title: string | undefined): boolean {
     parsedInput.metadata.title?.trim() ||
     extractHeadings(parsedInput.content).some((heading) => heading.level === 1)
   );
+}
+
+async function assertCanWriteOutput({
+  force,
+  inputPath,
+  outputPath
+}: {
+  force: boolean;
+  inputPath: string | undefined;
+  outputPath: string;
+}): Promise<void> {
+  if (inputPath && pathsAreEqual(inputPath, outputPath)) {
+    throw new CliUsageError("Output path cannot replace the input Markdown file.");
+  }
+
+  if (!force && (await fileExists(outputPath))) {
+    throw new CliUsageError("Output file already exists. Use --force to overwrite.");
+  }
+}
+
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await access(filePath, constants.F_OK);
+    return true;
+  } catch (error) {
+    const code = error instanceof Error && "code" in error ? error.code : undefined;
+
+    if (code === "ENOENT" || code === "ENOTDIR") {
+      return false;
+    }
+
+    throw error;
+  }
+}
+
+function pathsAreEqual(firstPath: string, secondPath: string): boolean {
+  const first = path.normalize(path.resolve(firstPath));
+  const second = path.normalize(path.resolve(secondPath));
+
+  if (process.platform === "win32") {
+    return first.toLowerCase() === second.toLowerCase();
+  }
+
+  return first === second;
 }
 
 function readStdin(stdin: NodeJS.ReadableStream): Promise<string> {

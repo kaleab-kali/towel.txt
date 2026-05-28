@@ -21,10 +21,12 @@ describe("parseCliArgs", () => {
         "--margin",
         "18mm",
         "--no-toc",
-        "--stdout"
+        "--stdout",
+        "--force"
       ])
     ).toEqual({
       cssPath: "theme.css",
+      force: true,
       inputPath: "doc.md",
       kind: "render",
       margin: "18mm",
@@ -39,6 +41,7 @@ describe("parseCliArgs", () => {
 
   it("enables table of contents by default", () => {
     expect(parseCliArgs(["doc.md"])).toEqual({
+      force: false,
       inputPath: "doc.md",
       kind: "render",
       stdin: false,
@@ -49,6 +52,7 @@ describe("parseCliArgs", () => {
 
   it("parses stdin mode without an input path", () => {
     expect(parseCliArgs(["--stdin", "--stdout", "--title", "Piped"])).toEqual({
+      force: false,
       kind: "render",
       stdin: true,
       stdout: true,

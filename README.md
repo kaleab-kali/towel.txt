@@ -47,6 +47,12 @@ Set print page size and margins:
 towel-txt document.md -o document.html --page-size "A4 landscape" --margin 18mm
 ```
 
+Overwrite an existing output file intentionally:
+
+```bash
+towel-txt document.md -o document.html --force
+```
+
 Disable the automatic table of contents:
 
 ```bash
@@ -79,6 +85,7 @@ The CLI supports:
 - Front matter metadata for title, author, and date.
 - Custom CSS appended to the default document styles.
 - Heading anchors.
+- Output overwrite protection with an explicit `--force` option.
 - Print page size and margin configuration.
 - Relative local image asset copying.
 - Table of contents generation.
