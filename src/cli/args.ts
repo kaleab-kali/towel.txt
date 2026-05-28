@@ -1,10 +1,14 @@
 import { parseArgs } from "node:util";
 
+export type OutputFormat = "html" | "pdf";
+
 export type CliCommand =
   | { kind: "help" }
   | {
+      browserPath?: string;
       cssPath?: string;
       force: boolean;
+      format?: OutputFormat;
       inputPath?: string;
       kind: "render";
       margin?: string;
@@ -32,6 +36,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
       allowPositionals: true,
       args: argv,
       options: {
+        browser: {
+          type: "string"
+        },
         help: {
           short: "h",
           type: "boolean"
@@ -41,6 +48,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
         },
         force: {
           type: "boolean"
+        },
+        format: {
+          type: "string"
         },
         output: {
           short: "o",
@@ -91,8 +101,10 @@ export function parseCliArgs(argv: string[]): CliCommand {
   }
 
   return {
+    browserPath: getStringOption(parsed.values.browser),
     cssPath: getStringOption(parsed.values.css),
     force: parsed.values.force === true,
+    format: getOutputFormatOption(parsed.values.format),
     ...(parsed.positionals[0] ? { inputPath: parsed.positionals[0] } : {}),
     kind: "render",
     margin: getStringOption(parsed.values.margin),
@@ -107,4 +119,16 @@ export function parseCliArgs(argv: string[]): CliCommand {
 
 function getStringOption(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
+}
+
+function getOutputFormatOption(value: unknown): OutputFormat | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value === "html" || value === "pdf") {
+    return value;
+  }
+
+  throw new CliUsageError('Expected --format to be "html" or "pdf".');
 }

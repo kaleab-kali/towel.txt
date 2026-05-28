@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `feat/pdf-export`
+### `feat/watch-mode`
 
-Add PDF generation through browser print automation.
+Rebuild output when Markdown or CSS files change.
 
 ## Completed Features
 
@@ -21,54 +21,54 @@ Add PDF generation through browser print automation.
    - Add `--force` to intentionally overwrite files.
    - Prevent output paths from replacing the input Markdown file.
 
-## Feature Backlog
-
-1. `feat/pdf-export`
+3. `feat/pdf-export`
    - Add PDF generation through browser print automation.
    - Respect page size, margin, CSS, and TOC options.
 
-2. `feat/watch-mode`
+## Feature Backlog
+
+1. `feat/watch-mode`
    - Rebuild output when Markdown or CSS files change.
    - Keep watch behavior scoped to local development.
 
-3. `feat/config-file`
+2. `feat/config-file`
    - Support a project config file for common defaults.
    - Include output, page, margin, CSS, and TOC settings.
 
-4. `feat/theme-system`
+3. `feat/theme-system`
    - Add named themes.
    - Start with default, compact, and report themes.
 
-5. `feat/syntax-highlighting`
+4. `feat/syntax-highlighting`
    - Add print-friendly code highlighting.
    - Keep raw HTML disabled.
 
-6. `feat/footnotes-support`
+5. `feat/footnotes-support`
    - Enable Markdown footnotes.
    - Add print-friendly footnote styling.
 
-7. `feat/document-cover-page`
+6. `feat/document-cover-page`
    - Add an optional cover page from metadata.
    - Support title, subtitle, author, and date.
 
-8. `feat/page-break-controls`
+7. `feat/page-break-controls`
    - Support explicit page breaks.
    - Add CSS helpers for avoiding awkward breaks.
 
-9. `feat/image-validation`
+8. `feat/image-validation`
    - Improve image diagnostics.
    - Report copied, skipped, and missing images clearly.
 
-10. `feat/asset-output-directory`
-    - Allow copied assets to be placed under a configured folder.
+9. `feat/asset-output-directory`
+   - Allow copied assets to be placed under a configured folder.
 
-11. `feat/html-minify-option`
+10. `feat/html-minify-option`
     - Add optional minified HTML output.
 
-12. `feat/json-summary-output`
+11. `feat/json-summary-output`
     - Emit a machine-readable summary for CI and scripts.
 
-13. `feat/strict-mode`
+12. `feat/strict-mode`
     - Fail on missing images, invalid metadata, or warnings.
 
 ## Production Hardening
