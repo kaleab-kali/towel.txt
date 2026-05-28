@@ -61,6 +61,23 @@ describe("parseCliArgs", () => {
     });
   });
 
+  it("parses PDF output options", () => {
+    expect(parseCliArgs(["doc.md", "--format", "pdf", "--browser", "chrome"])).toEqual({
+      browserPath: "chrome",
+      force: false,
+      format: "pdf",
+      inputPath: "doc.md",
+      kind: "render",
+      stdin: false,
+      stdout: false,
+      tableOfContents: true
+    });
+  });
+
+  it("fails when an unsupported output format is provided", () => {
+    expect(() => parseCliArgs(["doc.md", "--format", "docx"])).toThrow(CliUsageError);
+  });
+
   it("fails when stdin mode is combined with an input file", () => {
     expect(() => parseCliArgs(["document.md", "--stdin"])).toThrow(CliUsageError);
   });
@@ -78,5 +95,9 @@ describe("parseCliArgs", () => {
 describe("getDefaultOutputPath", () => {
   it("replaces the input extension with html", () => {
     expect(getDefaultOutputPath("docs/report.md")).toBe(path.join("docs", "report.html"));
+  });
+
+  it("uses the requested output format extension", () => {
+    expect(getDefaultOutputPath("docs/report.md", "pdf")).toBe(path.join("docs", "report.pdf"));
   });
 });

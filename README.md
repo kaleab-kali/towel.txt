@@ -1,7 +1,7 @@
 # Towel.txt
 
 Towel.txt is a small command-line tool for turning Markdown into clean,
-printable HTML documents.
+printable HTML and PDF documents.
 
 It is designed for notes, reports, project writeups, briefs, and other
 documents that start as plain Markdown but need a polished browser-printable
@@ -9,8 +9,9 @@ output.
 
 ## Status
 
-Towel.txt can currently generate self-contained printable HTML from Markdown.
-Package publishing and PDF export are planned after the HTML workflow is stable.
+Towel.txt can currently generate self-contained printable HTML and PDF files
+from Markdown. PDF export uses a local Chrome, Edge, or Chromium browser.
+Package publishing is planned after the core document workflow is stable.
 
 ## Goals
 
@@ -47,6 +48,24 @@ Set print page size and margins:
 towel-txt document.md -o document.html --page-size "A4 landscape" --margin 18mm
 ```
 
+Generate a PDF:
+
+```bash
+towel-txt document.md --format pdf -o document.pdf
+```
+
+The CLI also infers PDF output from a `.pdf` output path:
+
+```bash
+towel-txt document.md -o document.pdf
+```
+
+Use a specific browser executable for PDF export:
+
+```bash
+towel-txt document.md --format pdf -o document.pdf --browser /path/to/chrome
+```
+
 Overwrite an existing output file intentionally:
 
 ```bash
@@ -81,6 +100,7 @@ The CLI supports:
 
 - Markdown input files.
 - HTML output files.
+- PDF output files through Chrome, Edge, or Chromium.
 - Document title configuration.
 - Front matter metadata for title, author, and date.
 - Custom CSS appended to the default document styles.
@@ -123,6 +143,9 @@ and printed from the browser print dialog.
 
 When output is written to a different directory, safe relative Markdown image
 paths such as `images/diagram.png` are copied beside the generated HTML output.
+
+PDF output uses browser print automation. Install Chrome, Edge, or Chromium, or
+pass `--browser <path>` if the executable is not on the default search path.
 
 ## Development
 

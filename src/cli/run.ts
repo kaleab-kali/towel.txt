@@ -7,11 +7,13 @@ import { packageName, packageVersion } from "../meta.js";
 import { extractHeadings } from "../parser/headings.js";
 import { parseMarkdownInput } from "../parser/metadata.js";
 import { renderDocument } from "../render/document.js";
-import { CliUsageError, parseCliArgs } from "./args.js";
+import { CliUsageError, type OutputFormat, parseCliArgs } from "./args.js";
 import { copyLocalImageAssets } from "./assets.js";
+import { type PdfPrintOptions, printHtmlToPdf } from "./pdf.js";
 
 export interface CliIo {
   cwd: string;
+  pdfPrinter?: (options: PdfPrintOptions) => Promise<void>;
   stderr: Pick<NodeJS.WriteStream, "write">;
   stdin?: NodeJS.ReadableStream;
   stdout: Pick<NodeJS.WriteStream, "write">;
@@ -35,10 +37,19 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
       throw new CliUsageError("Expected --output or --stdout when reading from stdin.");
     }
 
+    const outputFormat = getOutputFormat(command.format, command.outputPath);
+
+    if (command.stdout && outputFormat === "pdf") {
+      throw new CliUsageError("PDF output requires --output instead of --stdout.");
+    }
+
     const inputPath = command.inputPath ? path.resolve(io.cwd, command.inputPath) : undefined;
     const outputPath = command.stdout
       ? undefined
-      : path.resolve(io.cwd, command.outputPath ?? getDefaultOutputPath(command.inputPath ?? ""));
+      : path.resolve(
+          io.cwd,
+          command.outputPath ?? getDefaultOutputPath(command.inputPath ?? "", outputFormat)
+        );
 
     if (!command.stdout) {
       await assertCanWriteOutput({
@@ -75,20 +86,33 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
     }
 
     await mkdir(path.dirname(requiredOutputPath(outputPath)), { recursive: true });
-    await writeFile(requiredOutputPath(outputPath), html, "utf8");
-    const imageAssets = inputPath
-      ? await copyLocalImageAssets({
-          inputPath,
-          markdown,
-          outputPath: requiredOutputPath(outputPath)
-        })
-      : [];
 
-    imageAssets.forEach((asset) => {
-      if (asset.status === "missing") {
-        io.stderr.write(`Warning: image asset "${asset.source}" was not copied: ${asset.error}\n`);
-      }
-    });
+    if (outputFormat === "pdf") {
+      await (io.pdfPrinter ?? printHtmlToPdf)({
+        basePath: inputPath ? path.dirname(inputPath) : undefined,
+        browserPath: resolveOptionalPath(io.cwd, command.browserPath),
+        html,
+        outputPath: requiredOutputPath(outputPath)
+      });
+    } else {
+      await writeFile(requiredOutputPath(outputPath), html, "utf8");
+
+      const imageAssets = inputPath
+        ? await copyLocalImageAssets({
+            inputPath,
+            markdown,
+            outputPath: requiredOutputPath(outputPath)
+          })
+        : [];
+
+      imageAssets.forEach((asset) => {
+        if (asset.status === "missing") {
+          io.stderr.write(
+            `Warning: image asset "${asset.source}" was not copied: ${asset.error}\n`
+          );
+        }
+      });
+    }
 
     io.stdout.write(
       `Wrote ${path.relative(io.cwd, requiredOutputPath(outputPath)) || outputPath}\n`
@@ -114,14 +138,17 @@ export function getHelpText(): string {
 
 Usage:
   ${packageName} <input.md> [--output output.html] [--title "Document Title"]
+  ${packageName} <input.md> --format pdf --output output.pdf
   ${packageName} --stdin --stdout [--title "Document Title"]
 
 Options:
+      --browser <path> Use a specific Chrome, Edge, or Chromium executable for PDF export.
       --css <path>     Append a custom CSS file to the default document styles.
       --force          Overwrite an existing output file.
+      --format <type>  Output format: "html" or "pdf". Defaults to html, or pdf for .pdf outputs.
       --margin <value> Print page margin, for example "0.75in" or "18mm".
       --no-toc         Disable automatic table of contents rendering.
-  -o, --output <path>  HTML output path. Defaults to input filename with .html extension.
+  -o, --output <path>  Output path. Defaults to input filename with the selected extension.
       --page-size <v>  Print page size, for example "letter", "A4", or "A4 landscape".
       --stdin          Read Markdown input from stdin instead of a file.
       --stdout         Write generated HTML to stdout instead of a file.
@@ -131,9 +158,9 @@ Options:
 `;
 }
 
-export function getDefaultOutputPath(inputPath: string): string {
+export function getDefaultOutputPath(inputPath: string, format: OutputFormat = "html"): string {
   const parsedPath = path.parse(inputPath);
-  return path.join(parsedPath.dir, `${parsedPath.name}.html`);
+  return path.join(parsedPath.dir, `${parsedPath.name}.${format}`);
 }
 
 function defaultCliIo(): CliIo {
@@ -156,6 +183,33 @@ function hasTitleSource(markdown: string, title: string | undefined): boolean {
     parsedInput.metadata.title?.trim() ||
     extractHeadings(parsedInput.content).some((heading) => heading.level === 1)
   );
+}
+
+function getOutputFormat(
+  format: OutputFormat | undefined,
+  outputPath: string | undefined
+): OutputFormat {
+  if (format) {
+    return format;
+  }
+
+  if (outputPath && path.extname(outputPath).toLowerCase() === ".pdf") {
+    return "pdf";
+  }
+
+  return "html";
+}
+
+function resolveOptionalPath(cwd: string, value: string | undefined): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  if (path.isAbsolute(value) || value.includes("/") || value.includes("\\")) {
+    return path.resolve(cwd, value);
+  }
+
+  return value;
 }
 
 async function assertCanWriteOutput({

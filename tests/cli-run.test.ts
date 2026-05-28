@@ -5,6 +5,7 @@ import { Readable } from "node:stream";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import type { PdfPrintOptions } from "../src/cli/pdf.js";
 import { runCli } from "../src/cli/run.js";
 
 let temporaryDirectory: string;
@@ -244,6 +245,112 @@ describe("runCli", () => {
     expect(exitCode).toBe(0);
     expect(html).toContain("<title>Piped Document</title>");
     expect(html).not.toBe("existing html");
+  });
+
+  it("renders a Markdown file to PDF through the configured printer", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const cssPath = path.join(temporaryDirectory, "print.css");
+    const outputPath = path.join(temporaryDirectory, "out", "brief.pdf");
+    const printed: PdfPrintOptions[] = [];
+
+    await writeFile(inputPath, "# Brief", "utf8");
+    await writeFile(cssPath, ".document { max-width: 720px; }", "utf8");
+
+    const exitCode = await runCli(
+      [
+        "brief.md",
+        "--format",
+        "pdf",
+        "--output",
+        "out/brief.pdf",
+        "--page-size",
+        "A4",
+        "--margin",
+        "20mm",
+        "--css",
+        "print.css",
+        "--browser",
+        "tools/chrome"
+      ],
+      {
+        cwd: temporaryDirectory,
+        pdfPrinter: async (options) => {
+          printed.push(options);
+          await writeFile(options.outputPath, "%PDF-1.4", "utf8");
+        },
+        stderr: createBufferedOutput(),
+        stdout: createBufferedOutput()
+      }
+    );
+
+    expect(exitCode).toBe(0);
+    expect(await readFile(outputPath, "utf8")).toBe("%PDF-1.4");
+    expect(printed).toHaveLength(1);
+    expect(printed[0]?.basePath).toBe(temporaryDirectory);
+    expect(printed[0]?.browserPath).toBe(path.join(temporaryDirectory, "tools", "chrome"));
+    expect(printed[0]?.html).toContain("size: A4;");
+    expect(printed[0]?.html).toContain("margin: 20mm;");
+    expect(printed[0]?.html).toContain(".document { max-width: 720px; }");
+  });
+
+  it("infers PDF output from a .pdf output path", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "brief.pdf");
+    const printed: PdfPrintOptions[] = [];
+
+    await writeFile(inputPath, "# Brief", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--output", "brief.pdf"], {
+      cwd: temporaryDirectory,
+      pdfPrinter: async (options) => {
+        printed.push(options);
+        await writeFile(options.outputPath, "%PDF-1.4", "utf8");
+      },
+      stderr: createBufferedOutput(),
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(0);
+    expect(printed).toHaveLength(1);
+    expect(await readFile(outputPath, "utf8")).toBe("%PDF-1.4");
+  });
+
+  it("uses a PDF default output path when PDF format is requested", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "brief.pdf");
+
+    await writeFile(inputPath, "# Brief", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--format", "pdf"], {
+      cwd: temporaryDirectory,
+      pdfPrinter: async (options) => {
+        await writeFile(options.outputPath, "%PDF-1.4", "utf8");
+      },
+      stderr: createBufferedOutput(),
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(0);
+    expect(await readFile(outputPath, "utf8")).toBe("%PDF-1.4");
+  });
+
+  it("rejects PDF output to stdout", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const errors = createBufferedOutput();
+
+    await writeFile(inputPath, "# Brief", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--format", "pdf", "--stdout"], {
+      cwd: temporaryDirectory,
+      pdfPrinter: async () => {
+        throw new Error("PDF printer should not run.");
+      },
+      stderr: errors,
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(1);
+    expect(errors.value).toContain("PDF output requires --output instead of --stdout.");
   });
 
   it("requires an output target when reading Markdown from stdin", async () => {
