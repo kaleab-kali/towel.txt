@@ -19,6 +19,7 @@ Versioning after the first public release.
 - Local relative image asset copying for generated HTML output.
 - Markdown heading extraction with stable heading IDs.
 - Markdown body HTML rendering with safe raw HTML escaping.
+- Named document themes: `default`, `compact`, and `report`.
 - Optional table of contents suppression with `--no-toc`.
 - Output overwrite protection with `--force`.
 - PDF export through a local Chrome, Edge, or Chromium browser.

@@ -1,11 +1,12 @@
 import { renderMarkdown } from "../parser/markdown.js";
-import { defaultDocumentStyles } from "../theme/default.js";
+import { getThemeStyles, type ThemeName } from "../theme/themes.js";
 import { renderPrintPageStyles, type PrintPageOptions } from "./print-options.js";
 import { renderTableOfContents } from "./toc.js";
 
 export interface RenderDocumentOptions extends PrintPageOptions {
   includeTableOfContents?: boolean;
   styles?: string;
+  theme?: ThemeName;
   title?: string;
 }
 
@@ -52,7 +53,7 @@ function inferDocumentTitle(headings: { level: number; text: string }[]): string
 
 function getDocumentStyles(options: RenderDocumentOptions): string {
   const styleBlocks = [
-    defaultDocumentStyles,
+    getThemeStyles(options.theme),
     renderPrintPageStyles(options),
     options.styles?.trim()
   ].filter((styleBlock): styleBlock is string => Boolean(styleBlock));

@@ -55,6 +55,15 @@ date: 2026-05-27
     );
   });
 
+  it("renders a selected document theme", () => {
+    const html = renderDocument("# Styled", {
+      theme: "compact"
+    });
+
+    expect(html).toContain("/* theme: compact */");
+    expect(html).toContain("max-width: 760px;");
+  });
+
   it("adds print page size and margin overrides", () => {
     const html = renderDocument("# Print", {
       margin: "18mm",

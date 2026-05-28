@@ -135,6 +135,7 @@ function applyConfigDefaults(
     tableOfContents: command.tableOfContentsSpecified
       ? command.tableOfContents
       : (defaults.tableOfContents ?? command.tableOfContents),
+    theme: command.theme ?? defaults.theme,
     title: command.title ?? defaults.title
   };
 }
@@ -178,6 +179,7 @@ async function renderCommand({
     margin: command.margin,
     pageSize: command.pageSize,
     styles,
+    theme: command.theme,
     title: command.title
   });
 
@@ -238,6 +240,7 @@ Options:
       --page-size <v>  Print page size, for example "letter", "A4", or "A4 landscape".
       --stdin          Read Markdown input from stdin instead of a file.
       --stdout         Write generated HTML to stdout instead of a file.
+      --theme <name>   Document theme: "default", "compact", or "report".
       --title <title>  Override the document title.
       --toc            Enable table of contents when config disables it.
       --watch          Watch input Markdown and CSS files, rebuilding file output on change.

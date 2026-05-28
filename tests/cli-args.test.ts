@@ -122,8 +122,18 @@ describe("parseCliArgs", () => {
     });
   });
 
+  it("parses a document theme", () => {
+    expect(parseCliArgs(["doc.md", "--theme", "report"])).toMatchObject({
+      theme: "report"
+    });
+  });
+
   it("fails when an unsupported output format is provided", () => {
     expect(() => parseCliArgs(["doc.md", "--format", "docx"])).toThrow(CliUsageError);
+  });
+
+  it("fails when an unsupported theme is provided", () => {
+    expect(() => parseCliArgs(["doc.md", "--theme", "minimal"])).toThrow(CliUsageError);
   });
 
   it("fails when table of contents flags conflict", () => {
