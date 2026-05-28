@@ -59,6 +59,12 @@ Write generated HTML to stdout for piping:
 towel-txt document.md --stdout
 ```
 
+Read Markdown from stdin:
+
+```bash
+cat document.md | towel-txt --stdin --stdout
+```
+
 During local development, run the CLI through pnpm:
 
 ```bash
@@ -78,6 +84,7 @@ The CLI supports:
 - Table of contents generation.
 - Optional table of contents suppression.
 - Stdout output for shell pipelines.
+- Stdin input for shell pipelines.
 - Default screen and print styles.
 
 ## Metadata

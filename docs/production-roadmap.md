@@ -5,15 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `feat/stdin-markdown-input`
+### `feat/output-overwrite-safety`
 
-Support Markdown input from stdin:
-
-```bash
-cat document.md | towel-txt --stdin --stdout
-```
-
-This pairs with `--stdout` and makes Towel.txt useful in shell pipelines.
+Avoid accidental output overwrites and add an explicit `--force` flag.
 
 ## Feature Backlog
 

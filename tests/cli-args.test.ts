@@ -30,6 +30,7 @@ describe("parseCliArgs", () => {
       margin: "18mm",
       outputPath: "dist/doc.html",
       pageSize: "A4 landscape",
+      stdin: false,
       stdout: true,
       tableOfContents: false,
       title: "Doc"
@@ -40,9 +41,24 @@ describe("parseCliArgs", () => {
     expect(parseCliArgs(["doc.md"])).toEqual({
       inputPath: "doc.md",
       kind: "render",
+      stdin: false,
       stdout: false,
       tableOfContents: true
     });
+  });
+
+  it("parses stdin mode without an input path", () => {
+    expect(parseCliArgs(["--stdin", "--stdout", "--title", "Piped"])).toEqual({
+      kind: "render",
+      stdin: true,
+      stdout: true,
+      tableOfContents: true,
+      title: "Piped"
+    });
+  });
+
+  it("fails when stdin mode is combined with an input file", () => {
+    expect(() => parseCliArgs(["document.md", "--stdin"])).toThrow(CliUsageError);
   });
 
   it("parses help and version commands", () => {

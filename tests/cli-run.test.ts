@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { Readable } from "node:stream";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
@@ -116,6 +117,65 @@ describe("runCli", () => {
     expect(output.value).toContain("<!doctype html>");
     expect(output.value).toContain("<title>Brief</title>");
     expect(output.value).not.toContain("Wrote ");
+  });
+
+  it("reads Markdown from stdin and writes generated HTML to stdout", async () => {
+    const output = createBufferedOutput();
+
+    const exitCode = await runCli(["--stdin", "--stdout"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdin: Readable.from(["# Piped Document"]),
+      stdout: output
+    });
+
+    expect(exitCode).toBe(0);
+    expect(output.value).toContain("<title>Piped Document</title>");
+    expect(output.value).toContain('<h1 id="piped-document">Piped Document</h1>');
+  });
+
+  it("requires an output target when reading Markdown from stdin", async () => {
+    const errors = createBufferedOutput();
+
+    const exitCode = await runCli(["--stdin"], {
+      cwd: temporaryDirectory,
+      stderr: errors,
+      stdin: Readable.from(["# Piped Document"]),
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(1);
+    expect(errors.value).toContain("Expected --output or --stdout when reading from stdin.");
+  });
+
+  it("requires a title source when reading untitled Markdown from stdin", async () => {
+    const errors = createBufferedOutput();
+
+    const exitCode = await runCli(["--stdin", "--stdout"], {
+      cwd: temporaryDirectory,
+      stderr: errors,
+      stdin: Readable.from(["Plain paragraph."]),
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(1);
+    expect(errors.value).toContain(
+      "Expected --title, front matter title, or H1 when reading from stdin."
+    );
+  });
+
+  it("allows --title to provide a title source for stdin Markdown", async () => {
+    const output = createBufferedOutput();
+
+    const exitCode = await runCli(["--stdin", "--stdout", "--title", "Piped"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdin: Readable.from(["Plain paragraph."]),
+      stdout: output
+    });
+
+    expect(exitCode).toBe(0);
+    expect(output.value).toContain("<title>Piped</title>");
   });
 
   it("copies relative image assets beside the generated HTML output", async () => {

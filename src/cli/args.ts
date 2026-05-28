@@ -4,12 +4,13 @@ export type CliCommand =
   | { kind: "help" }
   | {
       cssPath?: string;
-      inputPath: string;
+      inputPath?: string;
       kind: "render";
       margin?: string;
       outputPath?: string;
       pageSize?: string;
       stdout: boolean;
+      stdin: boolean;
       tableOfContents: boolean;
       title?: string;
     }
@@ -53,6 +54,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
         stdout: {
           type: "boolean"
         },
+        stdin: {
+          type: "boolean"
+        },
         title: {
           type: "string"
         },
@@ -74,17 +78,22 @@ export function parseCliArgs(argv: string[]): CliCommand {
     return { kind: "version" };
   }
 
-  if (parsed.positionals.length !== 1) {
+  if (parsed.values.stdin === true && parsed.positionals.length > 0) {
+    throw new CliUsageError("Do not pass an input file when using --stdin.");
+  }
+
+  if (parsed.values.stdin !== true && parsed.positionals.length !== 1) {
     throw new CliUsageError("Expected exactly one Markdown input file.");
   }
 
   return {
     cssPath: getStringOption(parsed.values.css),
-    inputPath: parsed.positionals[0],
+    ...(parsed.positionals[0] ? { inputPath: parsed.positionals[0] } : {}),
     kind: "render",
     margin: getStringOption(parsed.values.margin),
     outputPath: getStringOption(parsed.values.output),
     pageSize: getStringOption(parsed.values["page-size"]),
+    stdin: parsed.values.stdin === true,
     stdout: parsed.values.stdout === true,
     tableOfContents: parsed.values["no-toc"] !== true,
     title: getStringOption(parsed.values.title)
