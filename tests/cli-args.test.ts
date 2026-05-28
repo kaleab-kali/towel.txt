@@ -30,11 +30,13 @@ describe("parseCliArgs", () => {
       inputPath: "doc.md",
       kind: "render",
       margin: "18mm",
+      noConfig: false,
       outputPath: "dist/doc.html",
       pageSize: "A4 landscape",
       stdin: false,
       stdout: true,
       tableOfContents: false,
+      tableOfContentsSpecified: true,
       title: "Doc",
       watch: false
     });
@@ -45,9 +47,11 @@ describe("parseCliArgs", () => {
       force: false,
       inputPath: "doc.md",
       kind: "render",
+      noConfig: false,
       stdin: false,
       stdout: false,
       tableOfContents: true,
+      tableOfContentsSpecified: false,
       watch: false
     });
   });
@@ -56,9 +60,11 @@ describe("parseCliArgs", () => {
     expect(parseCliArgs(["--stdin", "--stdout", "--title", "Piped"])).toEqual({
       force: false,
       kind: "render",
+      noConfig: false,
       stdin: true,
       stdout: true,
       tableOfContents: true,
+      tableOfContentsSpecified: false,
       title: "Piped",
       watch: false
     });
@@ -71,9 +77,26 @@ describe("parseCliArgs", () => {
       format: "pdf",
       inputPath: "doc.md",
       kind: "render",
+      noConfig: false,
       stdin: false,
       stdout: false,
       tableOfContents: true,
+      tableOfContentsSpecified: false,
+      watch: false
+    });
+  });
+
+  it("parses config options", () => {
+    expect(parseCliArgs(["doc.md", "--config", "towel-txt.config.yaml", "--no-config"])).toEqual({
+      configPath: "towel-txt.config.yaml",
+      force: false,
+      inputPath: "doc.md",
+      kind: "render",
+      noConfig: true,
+      stdin: false,
+      stdout: false,
+      tableOfContents: true,
+      tableOfContentsSpecified: false,
       watch: false
     });
   });
@@ -83,15 +106,28 @@ describe("parseCliArgs", () => {
       force: false,
       inputPath: "doc.md",
       kind: "render",
+      noConfig: false,
       stdin: false,
       stdout: false,
       tableOfContents: true,
+      tableOfContentsSpecified: false,
       watch: true
+    });
+  });
+
+  it("parses an explicit table of contents enablement", () => {
+    expect(parseCliArgs(["doc.md", "--toc"])).toMatchObject({
+      tableOfContents: true,
+      tableOfContentsSpecified: true
     });
   });
 
   it("fails when an unsupported output format is provided", () => {
     expect(() => parseCliArgs(["doc.md", "--format", "docx"])).toThrow(CliUsageError);
+  });
+
+  it("fails when table of contents flags conflict", () => {
+    expect(() => parseCliArgs(["doc.md", "--toc", "--no-toc"])).toThrow(CliUsageError);
   });
 
   it("fails when stdin mode is combined with an input file", () => {

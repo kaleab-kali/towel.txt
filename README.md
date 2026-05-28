@@ -72,6 +72,12 @@ Rebuild output when the Markdown or custom CSS file changes:
 towel-txt document.md -o document.html --watch
 ```
 
+Load defaults from a config file:
+
+```bash
+towel-txt document.md --config towel-txt.config.yaml
+```
+
 Overwrite an existing output file intentionally:
 
 ```bash
@@ -116,6 +122,7 @@ The CLI supports:
 - Relative local image asset copying.
 - Table of contents generation.
 - Optional table of contents suppression.
+- Project config files for shared defaults.
 - Watch mode for rebuilding file output during local editing.
 - Stdout output for shell pipelines.
 - Stdin input for shell pipelines.
@@ -138,12 +145,37 @@ date: 2026-05-27
 The `title` field controls the generated HTML document title unless `--title` is
 provided on the CLI.
 
+## Configuration
+
+Towel.txt automatically looks for `towel-txt.config.yaml`,
+`towel-txt.config.yml`, or `towel-txt.config.json` in the current working
+directory. Use `--config <path>` to load a specific config file, or
+`--no-config` to disable discovery.
+
+```yaml
+output: dist/document.html
+css: examples/print.css
+format: html
+title: Project Brief
+pageSize: A4
+margin: 18mm
+tableOfContents: true
+```
+
+CLI flags override config defaults. Use `--toc` when a config file disables the
+table of contents and one command needs it enabled.
+
+Supported config fields are `output`, `css`, `format`, `title`, `pageSize`,
+`margin`, `tableOfContents`, and `browser`.
+
 ## Example
 
 See [examples/sample.md](examples/sample.md) and the generated
 [examples/sample.html](examples/sample.html).
 
 See [examples/print.css](examples/print.css) for a small custom CSS example.
+See [examples/towel-txt.config.yaml](examples/towel-txt.config.yaml) for a
+small config example.
 
 The generated HTML is self-contained, so it can be opened directly in a browser
 and printed from the browser print dialog.

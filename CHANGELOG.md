@@ -24,6 +24,7 @@ Versioning after the first public release.
 - PDF export through a local Chrome, Edge, or Chromium browser.
 - Print page size and margin options for generated HTML documents.
 - Printable HTML document rendering with default screen and print styles.
+- Project config files with `--config` and `--no-config`.
 - Stdin Markdown input with `--stdin`.
 - Stdout HTML output with `--stdout`.
 - Table of contents tree building and HTML rendering.

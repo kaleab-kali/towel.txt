@@ -6,17 +6,20 @@ export type CliCommand =
   | { kind: "help" }
   | {
       browserPath?: string;
+      configPath?: string;
       cssPath?: string;
       force: boolean;
       format?: OutputFormat;
       inputPath?: string;
       kind: "render";
       margin?: string;
+      noConfig: boolean;
       outputPath?: string;
       pageSize?: string;
       stdout: boolean;
       stdin: boolean;
       tableOfContents: boolean;
+      tableOfContentsSpecified: boolean;
       title?: string;
       watch: boolean;
     }
@@ -38,6 +41,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
       args: argv,
       options: {
         browser: {
+          type: "string"
+        },
+        config: {
           type: "string"
         },
         help: {
@@ -66,6 +72,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
         "no-toc": {
           type: "boolean"
         },
+        "no-config": {
+          type: "boolean"
+        },
         stdout: {
           type: "boolean"
         },
@@ -74,6 +83,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
         },
         title: {
           type: "string"
+        },
+        toc: {
+          type: "boolean"
         },
         version: {
           type: "boolean"
@@ -96,6 +108,10 @@ export function parseCliArgs(argv: string[]): CliCommand {
     return { kind: "version" };
   }
 
+  if (parsed.values.toc === true && parsed.values["no-toc"] === true) {
+    throw new CliUsageError("Do not pass --toc with --no-toc.");
+  }
+
   if (parsed.values.stdin === true && parsed.positionals.length > 0) {
     throw new CliUsageError("Do not pass an input file when using --stdin.");
   }
@@ -106,17 +122,20 @@ export function parseCliArgs(argv: string[]): CliCommand {
 
   return {
     browserPath: getStringOption(parsed.values.browser),
+    configPath: getStringOption(parsed.values.config),
     cssPath: getStringOption(parsed.values.css),
     force: parsed.values.force === true,
     format: getOutputFormatOption(parsed.values.format),
     ...(parsed.positionals[0] ? { inputPath: parsed.positionals[0] } : {}),
     kind: "render",
     margin: getStringOption(parsed.values.margin),
+    noConfig: parsed.values["no-config"] === true,
     outputPath: getStringOption(parsed.values.output),
     pageSize: getStringOption(parsed.values["page-size"]),
     stdin: parsed.values.stdin === true,
     stdout: parsed.values.stdout === true,
     tableOfContents: parsed.values["no-toc"] !== true,
+    tableOfContentsSpecified: parsed.values["no-toc"] === true || parsed.values.toc === true,
     title: getStringOption(parsed.values.title),
     watch: parsed.values.watch === true
   };

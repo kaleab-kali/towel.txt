@@ -9,6 +9,7 @@ import { parseMarkdownInput } from "../parser/metadata.js";
 import { renderDocument } from "../render/document.js";
 import { CliUsageError, type CliCommand, type OutputFormat, parseCliArgs } from "./args.js";
 import { copyLocalImageAssets } from "./assets.js";
+import { type CliConfigDefaults, loadCliConfig } from "./config.js";
 import { type PdfPrintOptions, printHtmlToPdf } from "./pdf.js";
 import { type WatchFilesOptions, watchFiles } from "./watch.js";
 
@@ -24,17 +25,24 @@ export interface CliIo {
 
 export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promise<number> {
   try {
-    const command = parseCliArgs(argv);
+    const parsedCommand = parseCliArgs(argv);
 
-    if (command.kind === "help") {
+    if (parsedCommand.kind === "help") {
       io.stdout.write(getHelpText());
       return 0;
     }
 
-    if (command.kind === "version") {
+    if (parsedCommand.kind === "version") {
       io.stdout.write(`${packageName} ${packageVersion}\n`);
       return 0;
     }
+
+    const loadedConfig = await loadCliConfig({
+      configPath: parsedCommand.configPath,
+      cwd: io.cwd,
+      noConfig: parsedCommand.noConfig
+    });
+    const command = applyConfigDefaults(parsedCommand, loadedConfig?.defaults);
 
     if (command.stdin && !command.stdout && !command.outputPath) {
       throw new CliUsageError("Expected --output or --stdout when reading from stdin.");
@@ -107,6 +115,29 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
 }
 
 type RenderCommand = Extract<CliCommand, { kind: "render" }>;
+
+function applyConfigDefaults(
+  command: RenderCommand,
+  defaults: CliConfigDefaults | undefined
+): RenderCommand {
+  if (!defaults) {
+    return command;
+  }
+
+  return {
+    ...command,
+    browserPath: command.browserPath ?? defaults.browserPath,
+    cssPath: command.cssPath ?? defaults.cssPath,
+    format: command.format ?? defaults.format,
+    margin: command.margin ?? defaults.margin,
+    outputPath: command.outputPath ?? defaults.outputPath,
+    pageSize: command.pageSize ?? defaults.pageSize,
+    tableOfContents: command.tableOfContentsSpecified
+      ? command.tableOfContents
+      : (defaults.tableOfContents ?? command.tableOfContents),
+    title: command.title ?? defaults.title
+  };
+}
 
 async function renderCommand({
   allowOverwrite,
@@ -196,16 +227,19 @@ Usage:
 
 Options:
       --browser <path> Use a specific Chrome, Edge, or Chromium executable for PDF export.
+      --config <path>  Load defaults from a specific config file.
       --css <path>     Append a custom CSS file to the default document styles.
       --force          Overwrite an existing output file.
       --format <type>  Output format: "html" or "pdf". Defaults to html, or pdf for .pdf outputs.
       --margin <value> Print page margin, for example "0.75in" or "18mm".
+      --no-config      Disable default config file discovery.
       --no-toc         Disable automatic table of contents rendering.
   -o, --output <path>  Output path. Defaults to input filename with the selected extension.
       --page-size <v>  Print page size, for example "letter", "A4", or "A4 landscape".
       --stdin          Read Markdown input from stdin instead of a file.
       --stdout         Write generated HTML to stdout instead of a file.
       --title <title>  Override the document title.
+      --toc            Enable table of contents when config disables it.
       --watch          Watch input Markdown and CSS files, rebuilding file output on change.
   -h, --help           Show this help message.
       --version        Show the current version.

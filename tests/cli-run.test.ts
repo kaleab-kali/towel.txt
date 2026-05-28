@@ -450,6 +450,132 @@ describe("runCli", () => {
     expect(await readFile(outputPath, "utf8")).toContain("<title>Notes</title>");
   });
 
+  it("loads default rendering options from a project config file", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const cssPath = path.join(temporaryDirectory, "print.css");
+    const outputPath = path.join(temporaryDirectory, "dist", "configured.html");
+
+    await writeFile(inputPath, "# Brief\n\n## Summary", "utf8");
+    await writeFile(cssPath, ".document { max-width: 640px; }", "utf8");
+    await writeFile(
+      path.join(temporaryDirectory, "towel-txt.config.yaml"),
+      [
+        "output: dist/configured.html",
+        "title: Configured Brief",
+        "css: print.css",
+        "pageSize: A4",
+        "margin: 20mm",
+        "tableOfContents: false"
+      ].join("\n"),
+      "utf8"
+    );
+
+    const exitCode = await runCli(["brief.md"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: createBufferedOutput()
+    });
+
+    const html = await readFile(outputPath, "utf8");
+
+    expect(exitCode).toBe(0);
+    expect(html).toContain("<title>Configured Brief</title>");
+    expect(html).toContain(".document { max-width: 640px; }");
+    expect(html).toContain("size: A4;");
+    expect(html).toContain("margin: 20mm;");
+    expect(html).not.toContain('class="toc"');
+  });
+
+  it("lets CLI flags override project config defaults", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "cli.html");
+
+    await writeFile(inputPath, "# Brief\n\n## Summary", "utf8");
+    await writeFile(
+      path.join(temporaryDirectory, "towel-txt.config.yaml"),
+      ["output: config.html", "title: Config Title", "tableOfContents: false"].join("\n"),
+      "utf8"
+    );
+
+    const exitCode = await runCli(
+      ["brief.md", "--output", "cli.html", "--title", "CLI Title", "--toc"],
+      {
+        cwd: temporaryDirectory,
+        stderr: createBufferedOutput(),
+        stdout: createBufferedOutput()
+      }
+    );
+
+    const html = await readFile(outputPath, "utf8");
+
+    expect(exitCode).toBe(0);
+    expect(html).toContain("<title>CLI Title</title>");
+    expect(html).toContain('class="toc"');
+    await expect(readFile(path.join(temporaryDirectory, "config.html"), "utf8")).rejects.toThrow();
+  });
+
+  it("can disable project config discovery", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const defaultOutputPath = path.join(temporaryDirectory, "brief.html");
+
+    await writeFile(inputPath, "# Brief", "utf8");
+    await writeFile(
+      path.join(temporaryDirectory, "towel-txt.config.yaml"),
+      "output: config.html",
+      "utf8"
+    );
+
+    const exitCode = await runCli(["brief.md", "--no-config"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(0);
+    expect(await readFile(defaultOutputPath, "utf8")).toContain("<title>Brief</title>");
+    await expect(readFile(path.join(temporaryDirectory, "config.html"), "utf8")).rejects.toThrow();
+  });
+
+  it("loads a specific config file with --config", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const configDirectory = path.join(temporaryDirectory, "settings");
+    const outputPath = path.join(configDirectory, "configured.html");
+
+    await writeFile(inputPath, "# Brief", "utf8");
+    await mkdir(configDirectory, { recursive: true });
+    await writeFile(path.join(configDirectory, "custom.yaml"), "output: configured.html", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--config", "settings/custom.yaml"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(0);
+    expect(await readFile(outputPath, "utf8")).toContain("<title>Brief</title>");
+  });
+
+  it("returns a usage error for invalid config fields", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const errors = createBufferedOutput();
+
+    await writeFile(inputPath, "# Brief", "utf8");
+    await writeFile(
+      path.join(temporaryDirectory, "towel-txt.config.yaml"),
+      "unknown: true",
+      "utf8"
+    );
+
+    const exitCode = await runCli(["brief.md"], {
+      cwd: temporaryDirectory,
+      stderr: errors,
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(1);
+    expect(errors.value).toContain("Unsupported config field: unknown.");
+  });
+
   it("watches Markdown and CSS inputs and rebuilds output on change", async () => {
     const inputPath = path.join(temporaryDirectory, "brief.md");
     const cssPath = path.join(temporaryDirectory, "print.css");
