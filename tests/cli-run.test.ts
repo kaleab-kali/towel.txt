@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import type { PdfPrintOptions } from "../src/cli/pdf.js";
 import { runCli } from "../src/cli/run.js";
+import type { WatchFilesOptions } from "../src/cli/watch.js";
 
 let temporaryDirectory: string;
 
@@ -447,6 +448,91 @@ describe("runCli", () => {
 
     expect(exitCode).toBe(0);
     expect(await readFile(outputPath, "utf8")).toContain("<title>Notes</title>");
+  });
+
+  it("watches Markdown and CSS inputs and rebuilds output on change", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const cssPath = path.join(temporaryDirectory, "print.css");
+    const outputPath = path.join(temporaryDirectory, "brief.html");
+    const output = createBufferedOutput();
+    const watched: WatchFilesOptions[] = [];
+
+    await writeFile(inputPath, "# Initial", "utf8");
+    await writeFile(cssPath, ".document { color: black; }", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--css", "print.css", "--watch"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: output,
+      watcher: async (options) => {
+        watched.push(options);
+        await writeFile(inputPath, "# Updated", "utf8");
+        await options.onChange(inputPath);
+      }
+    });
+
+    const html = await readFile(outputPath, "utf8");
+
+    expect(exitCode).toBe(0);
+    expect(watched).toHaveLength(1);
+    expect(watched[0]?.files).toEqual([inputPath, cssPath]);
+    expect(html).toContain("<title>Updated</title>");
+    expect(output.value).toContain("Watching brief.md, print.css\n");
+    expect(output.value).toContain("Change detected: brief.md\n");
+  });
+
+  it("requires --force when watch mode starts with an existing output file", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "brief.html");
+    const errors = createBufferedOutput();
+    let watcherRan = false;
+
+    await writeFile(inputPath, "# Brief", "utf8");
+    await writeFile(outputPath, "existing html", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--watch"], {
+      cwd: temporaryDirectory,
+      stderr: errors,
+      stdout: createBufferedOutput(),
+      watcher: async () => {
+        watcherRan = true;
+      }
+    });
+
+    expect(exitCode).toBe(1);
+    expect(watcherRan).toBe(false);
+    expect(errors.value).toContain("Output file already exists. Use --force to overwrite.");
+    expect(await readFile(outputPath, "utf8")).toBe("existing html");
+  });
+
+  it("rejects watch mode with stdin input", async () => {
+    const errors = createBufferedOutput();
+
+    const exitCode = await runCli(["--stdin", "--output", "brief.html", "--watch"], {
+      cwd: temporaryDirectory,
+      stderr: errors,
+      stdin: Readable.from(["# Brief"]),
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(1);
+    expect(errors.value).toContain("Watch mode requires an input file instead of --stdin.");
+  });
+
+  it("rejects watch mode with stdout output", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const errors = createBufferedOutput();
+
+    await writeFile(inputPath, "# Brief", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--stdout", "--watch"], {
+      cwd: temporaryDirectory,
+      stderr: errors,
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(1);
+    expect(errors.value).toContain("Watch mode requires file output instead of --stdout.");
   });
 
   it("returns a usage error for invalid arguments", async () => {

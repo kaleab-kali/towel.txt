@@ -7,16 +7,19 @@ import { packageName, packageVersion } from "../meta.js";
 import { extractHeadings } from "../parser/headings.js";
 import { parseMarkdownInput } from "../parser/metadata.js";
 import { renderDocument } from "../render/document.js";
-import { CliUsageError, type OutputFormat, parseCliArgs } from "./args.js";
+import { CliUsageError, type CliCommand, type OutputFormat, parseCliArgs } from "./args.js";
 import { copyLocalImageAssets } from "./assets.js";
 import { type PdfPrintOptions, printHtmlToPdf } from "./pdf.js";
+import { type WatchFilesOptions, watchFiles } from "./watch.js";
 
 export interface CliIo {
   cwd: string;
   pdfPrinter?: (options: PdfPrintOptions) => Promise<void>;
+  signal?: AbortSignal;
   stderr: Pick<NodeJS.WriteStream, "write">;
   stdin?: NodeJS.ReadableStream;
   stdout: Pick<NodeJS.WriteStream, "write">;
+  watcher?: (options: WatchFilesOptions) => Promise<void>;
 }
 
 export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promise<number> {
@@ -37,6 +40,14 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
       throw new CliUsageError("Expected --output or --stdout when reading from stdin.");
     }
 
+    if (command.watch && command.stdin) {
+      throw new CliUsageError("Watch mode requires an input file instead of --stdin.");
+    }
+
+    if (command.watch && command.stdout) {
+      throw new CliUsageError("Watch mode requires file output instead of --stdout.");
+    }
+
     const outputFormat = getOutputFormat(command.format, command.outputPath);
 
     if (command.stdout && outputFormat === "pdf") {
@@ -51,86 +62,127 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
           command.outputPath ?? getDefaultOutputPath(command.inputPath ?? "", outputFormat)
         );
 
-    if (!command.stdout) {
-      await assertCanWriteOutput({
-        force: command.force,
-        inputPath,
-        outputPath: requiredOutputPath(outputPath)
-      });
-    }
-
-    const markdown = command.stdin
-      ? await readStdin(io.stdin ?? Readable.from([]))
-      : await readFile(requiredInputPath(inputPath), "utf8");
-
-    if (command.stdin && !hasTitleSource(markdown, command.title)) {
-      throw new CliUsageError(
-        "Expected --title, front matter title, or H1 when reading from stdin."
-      );
-    }
-
-    const styles = command.cssPath
-      ? await readFile(path.resolve(io.cwd, command.cssPath), "utf8")
-      : undefined;
-    const html = renderDocument(markdown, {
-      includeTableOfContents: command.tableOfContents,
-      margin: command.margin,
-      pageSize: command.pageSize,
-      styles,
-      title: command.title
+    await renderCommand({
+      allowOverwrite: false,
+      command,
+      inputPath,
+      io,
+      outputFormat,
+      outputPath
     });
 
-    if (command.stdout) {
-      io.stdout.write(html);
-      return 0;
-    }
+    if (command.watch) {
+      const watchedFiles = getWatchedFiles(command, inputPath, io.cwd);
+      io.stdout.write(
+        `Watching ${watchedFiles.map((filePath) => displayPath(io.cwd, filePath)).join(", ")}\n`
+      );
 
-    await mkdir(path.dirname(requiredOutputPath(outputPath)), { recursive: true });
+      await (io.watcher ?? watchFiles)({
+        files: watchedFiles,
+        onChange: async (changedFilePath) => {
+          io.stdout.write(`Change detected: ${displayPath(io.cwd, changedFilePath)}\n`);
 
-    if (outputFormat === "pdf") {
-      await (io.pdfPrinter ?? printHtmlToPdf)({
-        basePath: inputPath ? path.dirname(inputPath) : undefined,
-        browserPath: resolveOptionalPath(io.cwd, command.browserPath),
-        html,
-        outputPath: requiredOutputPath(outputPath)
-      });
-    } else {
-      await writeFile(requiredOutputPath(outputPath), html, "utf8");
-
-      const imageAssets = inputPath
-        ? await copyLocalImageAssets({
-            inputPath,
-            markdown,
-            outputPath: requiredOutputPath(outputPath)
-          })
-        : [];
-
-      imageAssets.forEach((asset) => {
-        if (asset.status === "missing") {
-          io.stderr.write(
-            `Warning: image asset "${asset.source}" was not copied: ${asset.error}\n`
-          );
-        }
+          try {
+            await renderCommand({
+              allowOverwrite: true,
+              command,
+              inputPath,
+              io,
+              outputFormat,
+              outputPath
+            });
+          } catch (error) {
+            writeCliError(io, error);
+          }
+        },
+        signal: io.signal
       });
     }
-
-    io.stdout.write(
-      `Wrote ${path.relative(io.cwd, requiredOutputPath(outputPath)) || outputPath}\n`
-    );
 
     return 0;
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unexpected error.";
-    const prefix = error instanceof CliUsageError ? "Usage error" : "Error";
-
-    io.stderr.write(`${prefix}: ${message}\n`);
-
-    if (error instanceof CliUsageError) {
-      io.stderr.write(`Run "${packageName} --help" for usage.\n`);
-    }
-
+    writeCliError(io, error);
     return 1;
   }
+}
+
+type RenderCommand = Extract<CliCommand, { kind: "render" }>;
+
+async function renderCommand({
+  allowOverwrite,
+  command,
+  inputPath,
+  io,
+  outputFormat,
+  outputPath
+}: {
+  allowOverwrite: boolean;
+  command: RenderCommand;
+  inputPath: string | undefined;
+  io: CliIo;
+  outputFormat: OutputFormat;
+  outputPath: string | undefined;
+}): Promise<void> {
+  if (!command.stdout) {
+    await assertCanWriteOutput({
+      force: allowOverwrite || command.force,
+      inputPath,
+      outputPath: requiredOutputPath(outputPath)
+    });
+  }
+
+  const markdown = command.stdin
+    ? await readStdin(io.stdin ?? Readable.from([]))
+    : await readFile(requiredInputPath(inputPath), "utf8");
+
+  if (command.stdin && !hasTitleSource(markdown, command.title)) {
+    throw new CliUsageError("Expected --title, front matter title, or H1 when reading from stdin.");
+  }
+
+  const styles = command.cssPath
+    ? await readFile(path.resolve(io.cwd, command.cssPath), "utf8")
+    : undefined;
+  const html = renderDocument(markdown, {
+    includeTableOfContents: command.tableOfContents,
+    margin: command.margin,
+    pageSize: command.pageSize,
+    styles,
+    title: command.title
+  });
+
+  if (command.stdout) {
+    io.stdout.write(html);
+    return;
+  }
+
+  await mkdir(path.dirname(requiredOutputPath(outputPath)), { recursive: true });
+
+  if (outputFormat === "pdf") {
+    await (io.pdfPrinter ?? printHtmlToPdf)({
+      basePath: inputPath ? path.dirname(inputPath) : undefined,
+      browserPath: resolveOptionalPath(io.cwd, command.browserPath),
+      html,
+      outputPath: requiredOutputPath(outputPath)
+    });
+  } else {
+    await writeFile(requiredOutputPath(outputPath), html, "utf8");
+
+    const imageAssets = inputPath
+      ? await copyLocalImageAssets({
+          inputPath,
+          markdown,
+          outputPath: requiredOutputPath(outputPath)
+        })
+      : [];
+
+    imageAssets.forEach((asset) => {
+      if (asset.status === "missing") {
+        io.stderr.write(`Warning: image asset "${asset.source}" was not copied: ${asset.error}\n`);
+      }
+    });
+  }
+
+  io.stdout.write(`Wrote ${displayPath(io.cwd, requiredOutputPath(outputPath))}\n`);
 }
 
 export function getHelpText(): string {
@@ -139,6 +191,7 @@ export function getHelpText(): string {
 Usage:
   ${packageName} <input.md> [--output output.html] [--title "Document Title"]
   ${packageName} <input.md> --format pdf --output output.pdf
+  ${packageName} <input.md> --watch [--output output.html]
   ${packageName} --stdin --stdout [--title "Document Title"]
 
 Options:
@@ -153,6 +206,7 @@ Options:
       --stdin          Read Markdown input from stdin instead of a file.
       --stdout         Write generated HTML to stdout instead of a file.
       --title <title>  Override the document title.
+      --watch          Watch input Markdown and CSS files, rebuilding file output on change.
   -h, --help           Show this help message.
       --version        Show the current version.
 `;
@@ -183,6 +237,35 @@ function hasTitleSource(markdown: string, title: string | undefined): boolean {
     parsedInput.metadata.title?.trim() ||
     extractHeadings(parsedInput.content).some((heading) => heading.level === 1)
   );
+}
+
+function getWatchedFiles(
+  command: RenderCommand,
+  inputPath: string | undefined,
+  cwd: string
+): string[] {
+  const watchedFiles = [requiredInputPath(inputPath)];
+
+  if (command.cssPath) {
+    watchedFiles.push(path.resolve(cwd, command.cssPath));
+  }
+
+  return [...new Set(watchedFiles)];
+}
+
+function displayPath(cwd: string, filePath: string): string {
+  return path.relative(cwd, filePath) || filePath;
+}
+
+function writeCliError(io: CliIo, error: unknown): void {
+  const message = error instanceof Error ? error.message : "Unexpected error.";
+  const prefix = error instanceof CliUsageError ? "Usage error" : "Error";
+
+  io.stderr.write(`${prefix}: ${message}\n`);
+
+  if (error instanceof CliUsageError) {
+    io.stderr.write(`Run "${packageName} --help" for usage.\n`);
+  }
 }
 
 function getOutputFormat(

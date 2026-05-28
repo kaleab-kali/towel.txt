@@ -35,7 +35,8 @@ describe("parseCliArgs", () => {
       stdin: false,
       stdout: true,
       tableOfContents: false,
-      title: "Doc"
+      title: "Doc",
+      watch: false
     });
   });
 
@@ -46,7 +47,8 @@ describe("parseCliArgs", () => {
       kind: "render",
       stdin: false,
       stdout: false,
-      tableOfContents: true
+      tableOfContents: true,
+      watch: false
     });
   });
 
@@ -57,7 +59,8 @@ describe("parseCliArgs", () => {
       stdin: true,
       stdout: true,
       tableOfContents: true,
-      title: "Piped"
+      title: "Piped",
+      watch: false
     });
   });
 
@@ -70,7 +73,20 @@ describe("parseCliArgs", () => {
       kind: "render",
       stdin: false,
       stdout: false,
-      tableOfContents: true
+      tableOfContents: true,
+      watch: false
+    });
+  });
+
+  it("parses watch mode", () => {
+    expect(parseCliArgs(["doc.md", "--watch"])).toEqual({
+      force: false,
+      inputPath: "doc.md",
+      kind: "render",
+      stdin: false,
+      stdout: false,
+      tableOfContents: true,
+      watch: true
     });
   });
 
