@@ -1,5 +1,6 @@
 output: sample.html
 css: print.css
+theme: report
 pageSize: A4
 margin: 18mm
 tableOfContents: true

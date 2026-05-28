@@ -1,5 +1,7 @@
 import { parseArgs } from "node:util";
 
+import { isThemeName, type ThemeName } from "../theme/themes.js";
+
 export type OutputFormat = "html" | "pdf";
 
 export type CliCommand =
@@ -20,6 +22,7 @@ export type CliCommand =
       stdin: boolean;
       tableOfContents: boolean;
       tableOfContentsSpecified: boolean;
+      theme?: ThemeName;
       title?: string;
       watch: boolean;
     }
@@ -84,6 +87,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
         title: {
           type: "string"
         },
+        theme: {
+          type: "string"
+        },
         toc: {
           type: "boolean"
         },
@@ -136,9 +142,22 @@ export function parseCliArgs(argv: string[]): CliCommand {
     stdout: parsed.values.stdout === true,
     tableOfContents: parsed.values["no-toc"] !== true,
     tableOfContentsSpecified: parsed.values["no-toc"] === true || parsed.values.toc === true,
+    theme: getThemeOption(parsed.values.theme),
     title: getStringOption(parsed.values.title),
     watch: parsed.values.watch === true
   };
+}
+
+function getThemeOption(value: unknown): ThemeName | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (isThemeName(value)) {
+    return value;
+  }
+
+  throw new CliUsageError('Expected --theme to be "default", "compact", or "report".');
 }
 
 function getStringOption(value: unknown): string | undefined {

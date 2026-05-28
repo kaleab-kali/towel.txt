@@ -463,6 +463,7 @@ describe("runCli", () => {
         "output: dist/configured.html",
         "title: Configured Brief",
         "css: print.css",
+        "theme: report",
         "pageSize: A4",
         "margin: 20mm",
         "tableOfContents: false"
@@ -480,6 +481,7 @@ describe("runCli", () => {
 
     expect(exitCode).toBe(0);
     expect(html).toContain("<title>Configured Brief</title>");
+    expect(html).toContain("/* theme: report */");
     expect(html).toContain(".document { max-width: 640px; }");
     expect(html).toContain("size: A4;");
     expect(html).toContain("margin: 20mm;");
@@ -493,12 +495,17 @@ describe("runCli", () => {
     await writeFile(inputPath, "# Brief\n\n## Summary", "utf8");
     await writeFile(
       path.join(temporaryDirectory, "towel-txt.config.yaml"),
-      ["output: config.html", "title: Config Title", "tableOfContents: false"].join("\n"),
+      [
+        "output: config.html",
+        "title: Config Title",
+        "theme: report",
+        "tableOfContents: false"
+      ].join("\n"),
       "utf8"
     );
 
     const exitCode = await runCli(
-      ["brief.md", "--output", "cli.html", "--title", "CLI Title", "--toc"],
+      ["brief.md", "--output", "cli.html", "--title", "CLI Title", "--theme", "compact", "--toc"],
       {
         cwd: temporaryDirectory,
         stderr: createBufferedOutput(),
@@ -510,6 +517,7 @@ describe("runCli", () => {
 
     expect(exitCode).toBe(0);
     expect(html).toContain("<title>CLI Title</title>");
+    expect(html).toContain("/* theme: compact */");
     expect(html).toContain('class="toc"');
     await expect(readFile(path.join(temporaryDirectory, "config.html"), "utf8")).rejects.toThrow();
   });

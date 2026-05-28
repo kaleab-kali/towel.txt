@@ -66,6 +66,12 @@ Use a specific browser executable for PDF export:
 towel-txt document.md --format pdf -o document.pdf --browser /path/to/chrome
 ```
 
+Select a built-in theme:
+
+```bash
+towel-txt document.md -o document.html --theme report
+```
+
 Rebuild output when the Markdown or custom CSS file changes:
 
 ```bash
@@ -117,6 +123,7 @@ The CLI supports:
 - Front matter metadata for title, author, and date.
 - Custom CSS appended to the default document styles.
 - Heading anchors.
+- Named themes: `default`, `compact`, and `report`.
 - Output overwrite protection with an explicit `--force` option.
 - Print page size and margin configuration.
 - Relative local image asset copying.
@@ -156,6 +163,7 @@ directory. Use `--config <path>` to load a specific config file, or
 output: dist/document.html
 css: examples/print.css
 format: html
+theme: report
 title: Project Brief
 pageSize: A4
 margin: 18mm
@@ -165,8 +173,8 @@ tableOfContents: true
 CLI flags override config defaults. Use `--toc` when a config file disables the
 table of contents and one command needs it enabled.
 
-Supported config fields are `output`, `css`, `format`, `title`, `pageSize`,
-`margin`, `tableOfContents`, and `browser`.
+Supported config fields are `output`, `css`, `format`, `theme`, `title`,
+`pageSize`, `margin`, `tableOfContents`, and `browser`.
 
 ## Example
 

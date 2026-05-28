@@ -4,6 +4,7 @@ import path from "node:path";
 import { parse as parseYaml } from "yaml";
 
 import { CliUsageError, type OutputFormat } from "./args.js";
+import { isThemeName, type ThemeName } from "../theme/themes.js";
 
 export interface CliConfigDefaults {
   browserPath?: string;
@@ -13,6 +14,7 @@ export interface CliConfigDefaults {
   outputPath?: string;
   pageSize?: string;
   tableOfContents?: boolean;
+  theme?: ThemeName;
   title?: string;
 }
 
@@ -34,6 +36,7 @@ const supportedFields = new Set([
   "output",
   "pageSize",
   "tableOfContents",
+  "theme",
   "title"
 ]);
 
@@ -98,6 +101,7 @@ function normalizeConfig(value: unknown, configDirectory: string): CliConfigDefa
     }),
     pageSize: getOptionalString(value.pageSize, "pageSize"),
     tableOfContents: getOptionalBoolean(value.tableOfContents, "tableOfContents"),
+    theme: getOptionalTheme(value.theme),
     title: getOptionalString(value.title, "title")
   };
 }
@@ -160,6 +164,18 @@ function getOptionalFormat(value: unknown): OutputFormat | undefined {
   }
 
   throw new CliUsageError('Config field "format" must be "html" or "pdf".');
+}
+
+function getOptionalTheme(value: unknown): ThemeName | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  if (isThemeName(value)) {
+    return value;
+  }
+
+  throw new CliUsageError('Config field "theme" must be "default", "compact", or "report".');
 }
 
 async function readConfigFile(configPath: string): Promise<unknown> {

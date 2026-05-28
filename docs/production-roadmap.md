@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `feat/theme-system`
+### `feat/syntax-highlighting`
 
-Add named themes.
+Add print-friendly code highlighting.
 
 ## Completed Features
 
@@ -33,43 +33,43 @@ Add named themes.
    - Support a project config file for common defaults.
    - Include output, page, margin, CSS, and TOC settings.
 
-## Feature Backlog
-
-1. `feat/theme-system`
+6. `feat/theme-system`
    - Add named themes.
    - Start with default, compact, and report themes.
 
-2. `feat/syntax-highlighting`
+## Feature Backlog
+
+1. `feat/syntax-highlighting`
    - Add print-friendly code highlighting.
    - Keep raw HTML disabled.
 
-3. `feat/footnotes-support`
+2. `feat/footnotes-support`
    - Enable Markdown footnotes.
    - Add print-friendly footnote styling.
 
-4. `feat/document-cover-page`
+3. `feat/document-cover-page`
    - Add an optional cover page from metadata.
    - Support title, subtitle, author, and date.
 
-5. `feat/page-break-controls`
+4. `feat/page-break-controls`
    - Support explicit page breaks.
    - Add CSS helpers for avoiding awkward breaks.
 
-6. `feat/image-validation`
+5. `feat/image-validation`
    - Improve image diagnostics.
    - Report copied, skipped, and missing images clearly.
 
-7. `feat/asset-output-directory`
+6. `feat/asset-output-directory`
    - Allow copied assets to be placed under a configured folder.
 
-8. `feat/html-minify-option`
+7. `feat/html-minify-option`
    - Add optional minified HTML output.
 
-9. `feat/json-summary-output`
+8. `feat/json-summary-output`
    - Emit a machine-readable summary for CI and scripts.
 
-10. `feat/strict-mode`
-    - Fail on missing images, invalid metadata, or warnings.
+9. `feat/strict-mode`
+   - Fail on missing images, invalid metadata, or warnings.
 
 ## Production Hardening
 
