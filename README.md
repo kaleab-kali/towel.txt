@@ -124,9 +124,8 @@ pnpm build
 
 ## Roadmap
 
-- Printable HTML MVP.
-- Theme support.
-- PDF export through browser automation.
+See [docs/production-roadmap.md](docs/production-roadmap.md) for the production
+readiness backlog.
 
 ## Contributing
 
