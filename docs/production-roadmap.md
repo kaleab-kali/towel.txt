@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `test/cli-fixtures`
+### `test/cross-platform-paths`
 
-Add fixture-based CLI tests with real input and output files.
+Cover Windows and POSIX path behavior.
 
 ## Completed Features
 
@@ -74,34 +74,36 @@ Add fixture-based CLI tests with real input and output files.
 No remaining feature backlog items are currently planned before production
 hardening.
 
-## Production Hardening
+## Completed Hardening
 
 1. `test/cli-fixtures`
    - Add fixture-based CLI tests with real input and output files.
 
-2. `test/cross-platform-paths`
+## Production Hardening
+
+1. `test/cross-platform-paths`
    - Cover Windows and POSIX path behavior.
 
-3. `ci/package-smoke-test`
+2. `ci/package-smoke-test`
    - Pack the package and verify the installed binary works.
 
-4. `ci/release-checks`
+3. `ci/release-checks`
    - Validate changelog, package metadata, and versioning before release.
 
-5. `docs/complete-cli-reference`
+4. `docs/complete-cli-reference`
    - Document every CLI option and common workflow.
 
-6. `docs/production-examples`
+5. `docs/production-examples`
    - Add examples for reports, briefs, technical notes, images, and custom CSS.
 
-7. `chore/npm-package-readiness`
+6. `chore/npm-package-readiness`
    - Finalize package metadata and publishable file list.
 
-8. `chore/release-automation`
+7. `chore/release-automation`
    - Add release automation after the first package-ready milestone.
 
-9. `docs/security-and-limits`
+8. `docs/security-and-limits`
    - Document raw HTML escaping, local image rules, and CSS assumptions.
 
-10. `feat/error-codes`
-    - Define stable CLI exit codes for scripts.
+9. `feat/error-codes`
+   - Define stable CLI exit codes for scripts.
