@@ -13,6 +13,12 @@ export {
   type CopyImageAssetsOptions,
   type ImageAssetCopyResult
 } from "./cli/assets.js";
+export {
+  getImageAssetWarning,
+  getImageAssetWarnings,
+  writeRenderSummary,
+  type RenderSummary
+} from "./cli/summary.js";
 export { packageName, packageVersion } from "./meta.js";
 export { renderDocument, type RenderDocumentOptions } from "./render/document.js";
 export { minifyHtml } from "./render/minify.js";

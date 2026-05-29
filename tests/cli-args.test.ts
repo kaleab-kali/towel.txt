@@ -27,6 +27,8 @@ describe("parseCliArgs", () => {
         "18mm",
         "--minify",
         "--no-toc",
+        "--summary-json",
+        "dist/summary.json",
         "--stdout",
         "--force"
       ])
@@ -47,6 +49,7 @@ describe("parseCliArgs", () => {
       stdin: false,
       stdout: true,
       subtitle: "Subtitle",
+      summaryJsonPath: "dist/summary.json",
       tableOfContents: false,
       tableOfContentsSpecified: true,
       title: "Doc",

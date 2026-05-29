@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `feat/json-summary-output`
+### `feat/strict-mode`
 
-Emit a machine-readable summary for CI and scripts.
+Fail on missing images, invalid metadata, or warnings.
 
 ## Completed Features
 
@@ -63,12 +63,12 @@ Emit a machine-readable summary for CI and scripts.
 13. `feat/html-minify-option`
     - Add optional minified HTML output.
 
+14. `feat/json-summary-output`
+    - Emit a machine-readable summary for CI and scripts.
+
 ## Feature Backlog
 
-1. `feat/json-summary-output`
-   - Emit a machine-readable summary for CI and scripts.
-
-2. `feat/strict-mode`
+1. `feat/strict-mode`
    - Fail on missing images, invalid metadata, or warnings.
 
 ## Production Hardening
