@@ -104,6 +104,9 @@ hardening.
 10. `feat/error-codes`
     - Define stable CLI exit codes for scripts.
 
+11. `ci/quality-gates`
+    - Run security audit, Node 20 and 22 CI, and performance smoke gates.
+
 ## Production Hardening
 
 No remaining production hardening items are currently planned.
