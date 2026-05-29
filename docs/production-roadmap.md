@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `ci/package-smoke-test`
+### `ci/release-checks`
 
-Pack the package and verify the installed binary works.
+Validate changelog, package metadata, and versioning before release.
 
 ## Completed Features
 
@@ -82,28 +82,28 @@ hardening.
 2. `test/cross-platform-paths`
    - Cover Windows and POSIX path behavior.
 
-## Production Hardening
-
-1. `ci/package-smoke-test`
+3. `ci/package-smoke-test`
    - Pack the package and verify the installed binary works.
 
-2. `ci/release-checks`
+## Production Hardening
+
+1. `ci/release-checks`
    - Validate changelog, package metadata, and versioning before release.
 
-3. `docs/complete-cli-reference`
+2. `docs/complete-cli-reference`
    - Document every CLI option and common workflow.
 
-4. `docs/production-examples`
+3. `docs/production-examples`
    - Add examples for reports, briefs, technical notes, images, and custom CSS.
 
-5. `chore/npm-package-readiness`
+4. `chore/npm-package-readiness`
    - Finalize package metadata and publishable file list.
 
-6. `chore/release-automation`
+5. `chore/release-automation`
    - Add release automation after the first package-ready milestone.
 
-7. `docs/security-and-limits`
+6. `docs/security-and-limits`
    - Document raw HTML escaping, local image rules, and CSS assumptions.
 
-8. `feat/error-codes`
+7. `feat/error-codes`
    - Define stable CLI exit codes for scripts.
