@@ -40,6 +40,9 @@ pnpm build
 towel-txt document.md -o document.html
 ```
 
+For every command option, config field, conflict rule, and common workflow, see
+[docs/cli-reference.md](docs/cli-reference.md).
+
 Append a custom CSS file to the built-in print styles:
 
 ```bash

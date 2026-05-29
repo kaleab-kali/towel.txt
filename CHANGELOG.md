@@ -11,6 +11,7 @@ Versioning after the first public release.
 
 - Initial open-source project scaffold.
 - CLI file rendering from Markdown input to printable HTML output.
+- Complete CLI reference for options, config fields, and common workflows.
 - Custom CSS support for generated HTML documents.
 - Documented the production readiness roadmap.
 - Explicit page break markers and print break helper classes.
