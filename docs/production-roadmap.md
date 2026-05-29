@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `feat/image-validation`
+### `feat/asset-output-directory`
 
-Improve local image diagnostics.
+Allow copied assets to be placed under a configured folder.
 
 ## Completed Features
 
@@ -50,26 +50,25 @@ Improve local image diagnostics.
    - Support title, subtitle, author, and date.
 
 10. `feat/page-break-controls`
+    - Support explicit page breaks.
+    - Add CSS helpers for avoiding awkward breaks.
 
-- Support explicit page breaks.
-- Add CSS helpers for avoiding awkward breaks.
+11. `feat/image-validation`
+    - Improve image diagnostics.
+    - Report copied, skipped, and missing images clearly.
 
 ## Feature Backlog
 
-1. `feat/image-validation`
-   - Improve image diagnostics.
-   - Report copied, skipped, and missing images clearly.
-
-2. `feat/asset-output-directory`
+1. `feat/asset-output-directory`
    - Allow copied assets to be placed under a configured folder.
 
-3. `feat/html-minify-option`
+2. `feat/html-minify-option`
    - Add optional minified HTML output.
 
-4. `feat/json-summary-output`
+3. `feat/json-summary-output`
    - Emit a machine-readable summary for CI and scripts.
 
-5. `feat/strict-mode`
+4. `feat/strict-mode`
    - Fail on missing images, invalid metadata, or warnings.
 
 ## Production Hardening

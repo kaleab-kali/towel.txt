@@ -19,4 +19,8 @@ export { renderPrintPageStyles, type PrintPageOptions } from "./render/print-opt
 export { buildTableOfContents, renderTableOfContents, type TocItem } from "./render/toc.js";
 export { defaultDocumentStyles } from "./theme/default.js";
 export { createHeadingId, createUniqueHeadingId } from "./utils/ids.js";
-export { extractLocalImageSources } from "./parser/images.js";
+export {
+  extractImageReferences,
+  extractLocalImageSources,
+  type ImageReference
+} from "./parser/images.js";

@@ -9,47 +9,79 @@ const markdownParser = new MarkdownIt({
   typographer: false
 });
 
-export function extractLocalImageSources(markdown: string): string[] {
-  const parsedInput = parseMarkdownInput(markdown);
-  const tokens = markdownParser.parse(parsedInput.content, {});
-  const sources = new Set<string>();
-
-  collectImageSources(tokens, sources);
-
-  return [...sources];
+export interface ImageReference {
+  reason?: string;
+  source: string;
+  status: "local" | "skipped";
 }
 
-function collectImageSources(tokens: Token[], sources: Set<string>): void {
+export function extractLocalImageSources(markdown: string): string[] {
+  return extractImageReferences(markdown)
+    .filter((reference) => reference.status === "local")
+    .map((reference) => reference.source);
+}
+
+export function extractImageReferences(markdown: string): ImageReference[] {
+  const parsedInput = parseMarkdownInput(markdown);
+  const tokens = markdownParser.parse(parsedInput.content, {});
+  const references = new Map<string, ImageReference>();
+
+  collectImageReferences(tokens, references);
+
+  return [...references.values()];
+}
+
+function collectImageReferences(tokens: Token[], references: Map<string, ImageReference>): void {
   tokens.forEach((token) => {
     if (token.type === "image") {
-      const source = token.attrGet("src");
+      const source = token.attrGet("src") ?? "";
 
-      if (source && isSafeRelativeImageSource(source)) {
-        sources.add(source);
+      if (!references.has(source)) {
+        const reason = getSkippedImageReason(source);
+        references.set(
+          source,
+          reason ? { reason, source, status: "skipped" } : { source, status: "local" }
+        );
       }
     }
 
     if (token.children) {
-      collectImageSources(token.children, sources);
+      collectImageReferences(token.children, references);
     }
   });
 }
 
-function isSafeRelativeImageSource(source: string): boolean {
-  if (
-    source === "" ||
-    source.startsWith("#") ||
-    source.includes("?") ||
-    source.includes("#") ||
-    /^[a-z][a-z0-9+.-]*:/iu.test(source) ||
-    source.startsWith("/") ||
-    source.startsWith("\\")
-  ) {
-    return false;
+function getSkippedImageReason(source: string): string | undefined {
+  if (source === "") {
+    return "empty image source";
+  }
+
+  if (source.startsWith("#")) {
+    return "fragment-only image source";
+  }
+
+  if (source.includes("?") || source.includes("#")) {
+    return "image source includes a query string or fragment";
+  }
+
+  if (/^[a-z][a-z0-9+.-]*:/iu.test(source)) {
+    return "remote or protocol-based image source";
+  }
+
+  if (source.startsWith("/") || source.startsWith("\\")) {
+    return "absolute image path";
   }
 
   const normalizedSource = source.replace(/\\/g, "/");
   const parts = normalizedSource.split("/");
 
-  return !parts.includes("..") && !parts.includes("");
+  if (parts.includes("..")) {
+    return "parent directory traversal is not copied";
+  }
+
+  if (parts.includes("")) {
+    return "empty image path segment";
+  }
+
+  return undefined;
 }
