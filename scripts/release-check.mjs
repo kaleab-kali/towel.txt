@@ -34,7 +34,29 @@ function checkPackageMetadata(manifest) {
   expectSemver(manifest.version, "package.json version must be a valid semver version.");
   expectNonEmptyString(manifest.description, "package.json description must be set.");
   expectEqual(manifest.type, "module", "package.json type must be module.");
+  expectEqual(manifest.main, "./dist/index.js", "package.json main must point to ./dist/index.js.");
+  expectEqual(
+    manifest.types,
+    "./dist/index.d.ts",
+    "package.json types must point to ./dist/index.d.ts."
+  );
+  expectEqual(
+    manifest.exports?.["."]?.types,
+    "./dist/index.d.ts",
+    "package.json exports must expose root types."
+  );
+  expectEqual(
+    manifest.exports?.["."]?.import,
+    "./dist/index.js",
+    "package.json exports must expose the root ESM entry."
+  );
+  expectEqual(
+    manifest.exports?.["./package.json"],
+    "./package.json",
+    "package.json exports must expose ./package.json."
+  );
   expectEqual(manifest.license, "MIT", "package.json license must be MIT.");
+  expectNonEmptyString(manifest.author, "package.json author must be set.");
   expect(!manifest.private, "package.json must not be marked private.");
 
   expectEqual(
@@ -45,8 +67,20 @@ function checkPackageMetadata(manifest) {
 
   expectArrayIncludes(
     manifest.files,
-    ["dist", "README.md", "LICENSE"],
-    "package.json files must include dist, README.md, and LICENSE."
+    [
+      "dist/**/*.js",
+      "dist/**/*.d.ts",
+      "dist/**/*.d.ts.map",
+      "README.md",
+      "LICENSE",
+      "CHANGELOG.md",
+      "docs/**/*.md",
+      "examples/**/*.md",
+      "examples/**/*.css",
+      "examples/**/*.svg",
+      "examples/**/*.yaml"
+    ],
+    "package.json files must include runtime dist files, docs, and examples."
   );
 
   expectArrayIncludes(
@@ -72,6 +106,12 @@ function checkPackageMetadata(manifest) {
     "package.json homepage must point to the README."
   );
   expectEqual(manifest.engines?.node, ">=20", "package.json engines.node must be >=20.");
+  expectEqual(
+    manifest.publishConfig?.access,
+    "public",
+    "package.json publishConfig.access must be public."
+  );
+  expectEqual(manifest.scripts?.prepack, "pnpm build", "package.json prepack must build dist.");
   expect(
     typeof manifest.packageManager === "string" && manifest.packageManager.startsWith("pnpm@"),
     "package.json packageManager must pin pnpm."

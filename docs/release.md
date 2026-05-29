@@ -7,5 +7,7 @@ ready for release.
    `pnpm build`, and `pnpm smoke:package` pass.
 2. Update `CHANGELOG.md`.
 3. Bump `package.json` using semantic versioning.
-4. Create a GitHub release with the changelog notes.
-5. Publish the package from a clean checkout.
+4. Run `npm pack --dry-run` and confirm the file list only contains built
+   runtime files, package metadata, docs, and examples.
+5. Create a GitHub release with the changelog notes.
+6. Publish the package from a clean checkout.
