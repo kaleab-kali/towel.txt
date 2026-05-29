@@ -34,7 +34,7 @@ export function extractImageReferences(markdown: string): ImageReference[] {
 function collectImageReferences(tokens: Token[], references: Map<string, ImageReference>): void {
   tokens.forEach((token) => {
     if (token.type === "image") {
-      const source = token.attrGet("src") ?? "";
+      const source = normalizeImageSource(token.attrGet("src") ?? "");
 
       if (!references.has(source)) {
         const reason = getSkippedImageReason(source);
@@ -49,6 +49,10 @@ function collectImageReferences(tokens: Token[], references: Map<string, ImageRe
       collectImageReferences(token.children, references);
     }
   });
+}
+
+function normalizeImageSource(source: string): string {
+  return source.replace(/%5c/giu, "\\");
 }
 
 function getSkippedImageReason(source: string): string | undefined {
