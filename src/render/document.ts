@@ -4,8 +4,10 @@ import { renderPrintPageStyles, type PrintPageOptions } from "./print-options.js
 import { renderTableOfContents } from "./toc.js";
 
 export interface RenderDocumentOptions extends PrintPageOptions {
+  cover?: boolean;
   includeTableOfContents?: boolean;
   styles?: string;
+  subtitle?: string;
   theme?: ThemeName;
   title?: string;
 }
@@ -17,11 +19,21 @@ export function renderDocument(markdown: string, options: RenderDocumentOptions 
     renderedMarkdown.metadata.title ??
     inferDocumentTitle(renderedMarkdown.headings) ??
     "Untitled Document";
+  const subtitle = options.subtitle ?? renderedMarkdown.metadata.subtitle;
+  const includeCover = options.cover ?? renderedMarkdown.metadata.cover ?? false;
   const metadata = renderMetadata(renderedMarkdown.metadata);
   const toc =
     options.includeTableOfContents === false
       ? ""
       : renderTableOfContents(renderedMarkdown.headings);
+  const cover = includeCover
+    ? renderCoverPage({
+        author: renderedMarkdown.metadata.author,
+        date: renderedMarkdown.metadata.date,
+        subtitle,
+        title
+      })
+    : "";
 
   return `<!doctype html>
 <html lang="en">
@@ -35,8 +47,8 @@ ${indent(getDocumentStyles(options), 4)}
 </head>
 <body>
   <main class="document">
-    <h1 class="document-title">${escapeHtml(title)}</h1>
-${metadata ? indent(metadata, 4) : ""}
+${cover ? indent(cover, 4) : `    <h1 class="document-title">${escapeHtml(title)}</h1>`}
+${!cover && metadata ? indent(metadata, 4) : ""}
 ${toc ? indent(toc, 4) : ""}
     <article class="content">
 ${indent(renderedMarkdown.html, 6)}
@@ -72,6 +84,40 @@ function renderMetadata(metadata: { author?: string; date?: string }): string {
   }
 
   return `<p class="document-meta">${items.join(" ")}</p>`;
+}
+
+function renderCoverPage({
+  author,
+  date,
+  subtitle,
+  title
+}: {
+  author?: string;
+  date?: string;
+  subtitle?: string;
+  title: string;
+}): string {
+  const metadata = renderCoverMetadata({ author, date });
+
+  return `<section class="cover-page" aria-label="Cover page">
+  <div class="cover-page-content">
+    <h1 class="cover-page-title">${escapeHtml(title)}</h1>
+${subtitle ? `    <p class="cover-page-subtitle">${escapeHtml(subtitle)}</p>\n` : ""}${metadata ? indent(metadata, 4) : ""}
+  </div>
+</section>`;
+}
+
+function renderCoverMetadata(metadata: { author?: string; date?: string }): string {
+  const items = [
+    metadata.author ? `<span>${escapeHtml(metadata.author)}</span>` : undefined,
+    metadata.date ? `<span>${escapeHtml(metadata.date)}</span>` : undefined
+  ].filter((item): item is string => Boolean(item));
+
+  if (items.length === 0) {
+    return "";
+  }
+
+  return `<p class="cover-page-meta">${items.join(" ")}</p>`;
 }
 
 function indent(value: string, spaces: number): string {

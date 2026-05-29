@@ -2,7 +2,9 @@ import { parse } from "yaml";
 
 export interface DocumentMetadata {
   author?: string;
+  cover?: boolean;
   date?: string;
+  subtitle?: string;
   title?: string;
 }
 
@@ -59,7 +61,9 @@ function normalizeMetadata(value: unknown): DocumentMetadata {
 
   return {
     author: getScalarString(value.author),
+    cover: getScalarBoolean(value.cover),
     date: getScalarString(value.date),
+    subtitle: getScalarString(value.subtitle),
     title: getScalarString(value.title)
   };
 }
@@ -74,6 +78,10 @@ function getScalarString(value: unknown): string | undefined {
   }
 
   return undefined;
+}
+
+function getScalarBoolean(value: unknown): boolean | undefined {
+  return typeof value === "boolean" ? value : undefined;
 }
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {

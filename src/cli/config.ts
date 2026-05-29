@@ -8,11 +8,13 @@ import { isThemeName, type ThemeName } from "../theme/themes.js";
 
 export interface CliConfigDefaults {
   browserPath?: string;
+  cover?: boolean;
   cssPath?: string;
   format?: OutputFormat;
   margin?: string;
   outputPath?: string;
   pageSize?: string;
+  subtitle?: string;
   tableOfContents?: boolean;
   theme?: ThemeName;
   title?: string;
@@ -30,11 +32,13 @@ const defaultConfigFilenames = [
 ];
 const supportedFields = new Set([
   "browser",
+  "cover",
   "css",
   "format",
   "margin",
   "output",
   "pageSize",
+  "subtitle",
   "tableOfContents",
   "theme",
   "title"
@@ -89,6 +93,7 @@ function normalizeConfig(value: unknown, configDirectory: string): CliConfigDefa
       allowBareCommand: true,
       fieldName: "browser"
     }),
+    cover: getOptionalBoolean(value.cover, "cover"),
     cssPath: getOptionalPath(value.css, configDirectory, {
       allowBareCommand: false,
       fieldName: "css"
@@ -100,6 +105,7 @@ function normalizeConfig(value: unknown, configDirectory: string): CliConfigDefa
       fieldName: "output"
     }),
     pageSize: getOptionalString(value.pageSize, "pageSize"),
+    subtitle: getOptionalString(value.subtitle, "subtitle"),
     tableOfContents: getOptionalBoolean(value.tableOfContents, "tableOfContents"),
     theme: getOptionalTheme(value.theme),
     title: getOptionalString(value.title, "title")

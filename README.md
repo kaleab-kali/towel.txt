@@ -20,6 +20,7 @@ Package publishing is planned after the core document workflow is stable.
 - Include print-friendly CSS by default.
 - Highlight common code fences with print-friendly colors.
 - Render footnotes with backlinks for longer documents.
+- Add an optional cover page from document metadata.
 - Keep output simple enough to inspect, customize, and share.
 - Provide a focused CLI that works well in scripts and local workflows.
 
@@ -74,6 +75,12 @@ Select a built-in theme:
 towel-txt document.md -o document.html --theme report
 ```
 
+Add a cover page for a rendered document:
+
+```bash
+towel-txt document.md -o document.html --cover --subtitle "Quarterly planning notes"
+```
+
 Rebuild output when the Markdown or custom CSS file changes:
 
 ```bash
@@ -123,8 +130,9 @@ The CLI supports:
 - PDF output files through Chrome, Edge, or Chromium.
 - Syntax highlighting for JavaScript, TypeScript, JSON, and shell code fences.
 - Footnotes using `[^label]` references and matching definitions.
+- Optional cover pages from metadata, config, or `--cover`.
 - Document title configuration.
-- Front matter metadata for title, author, and date.
+- Front matter metadata for title, subtitle, author, date, and cover pages.
 - Custom CSS appended to the default document styles.
 - Heading anchors.
 - Named themes: `default`, `compact`, and `report`.
@@ -146,15 +154,19 @@ Documents can include YAML front matter at the top of the Markdown file:
 ```md
 ---
 title: Project Brief
+subtitle: Quarterly planning notes
 author: Kaleab
 date: 2026-05-27
+cover: true
 ---
 
 # Project Brief
 ```
 
 The `title` field controls the generated HTML document title unless `--title` is
-provided on the CLI.
+provided on the CLI. Set `cover: true` to render a cover page before the table of
+contents and document body. Use `--no-cover` to disable a metadata or config
+cover page for one command.
 
 ## Footnotes
 
@@ -183,6 +195,8 @@ css: examples/print.css
 format: html
 theme: report
 title: Project Brief
+subtitle: Quarterly planning notes
+cover: true
 pageSize: A4
 margin: 18mm
 tableOfContents: true
@@ -192,7 +206,7 @@ CLI flags override config defaults. Use `--toc` when a config file disables the
 table of contents and one command needs it enabled.
 
 Supported config fields are `output`, `css`, `format`, `theme`, `title`,
-`pageSize`, `margin`, `tableOfContents`, and `browser`.
+`subtitle`, `cover`, `pageSize`, `margin`, `tableOfContents`, and `browser`.
 
 ## Example
 

@@ -127,11 +127,14 @@ function applyConfigDefaults(
   return {
     ...command,
     browserPath: command.browserPath ?? defaults.browserPath,
+    cover: command.coverSpecified ? command.cover : (defaults.cover ?? command.cover),
+    coverSpecified: command.coverSpecified || defaults.cover !== undefined,
     cssPath: command.cssPath ?? defaults.cssPath,
     format: command.format ?? defaults.format,
     margin: command.margin ?? defaults.margin,
     outputPath: command.outputPath ?? defaults.outputPath,
     pageSize: command.pageSize ?? defaults.pageSize,
+    subtitle: command.subtitle ?? defaults.subtitle,
     tableOfContents: command.tableOfContentsSpecified
       ? command.tableOfContents
       : (defaults.tableOfContents ?? command.tableOfContents),
@@ -175,10 +178,12 @@ async function renderCommand({
     ? await readFile(path.resolve(io.cwd, command.cssPath), "utf8")
     : undefined;
   const html = renderDocument(markdown, {
+    cover: command.coverSpecified ? command.cover : undefined,
     includeTableOfContents: command.tableOfContents,
     margin: command.margin,
     pageSize: command.pageSize,
     styles,
+    subtitle: command.subtitle,
     theme: command.theme,
     title: command.title
   });
@@ -230,16 +235,19 @@ Usage:
 Options:
       --browser <path> Use a specific Chrome, Edge, or Chromium executable for PDF export.
       --config <path>  Load defaults from a specific config file.
+      --cover          Add a cover page before the document body.
       --css <path>     Append a custom CSS file to the default document styles.
       --force          Overwrite an existing output file.
       --format <type>  Output format: "html" or "pdf". Defaults to html, or pdf for .pdf outputs.
       --margin <value> Print page margin, for example "0.75in" or "18mm".
       --no-config      Disable default config file discovery.
+      --no-cover       Disable a cover page from metadata or config.
       --no-toc         Disable automatic table of contents rendering.
   -o, --output <path>  Output path. Defaults to input filename with the selected extension.
       --page-size <v>  Print page size, for example "letter", "A4", or "A4 landscape".
       --stdin          Read Markdown input from stdin instead of a file.
       --stdout         Write generated HTML to stdout instead of a file.
+      --subtitle <txt> Override the document subtitle.
       --theme <name>   Document theme: "default", "compact", or "report".
       --title <title>  Override the document title.
       --toc            Enable table of contents when config disables it.
