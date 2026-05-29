@@ -284,6 +284,8 @@ See [examples/sample.md](examples/sample.md) and the generated
 See [examples/print.css](examples/print.css) for a small custom CSS example.
 See [examples/towel-txt.config.yaml](examples/towel-txt.config.yaml) for a
 small config example.
+See [docs/examples.md](docs/examples.md) for report, brief, technical note,
+image, and custom CSS workflows.
 
 The generated HTML is self-contained, so it can be opened directly in a browser
 and printed from the browser print dialog.

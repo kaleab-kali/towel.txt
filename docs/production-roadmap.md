@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `docs/production-examples`
+### `chore/npm-package-readiness`
 
-Add examples for reports, briefs, technical notes, images, and custom CSS.
+Finalize package metadata and publishable file list.
 
 ## Completed Features
 
@@ -91,19 +91,19 @@ hardening.
 5. `docs/complete-cli-reference`
    - Document every CLI option and common workflow.
 
-## Production Hardening
-
-1. `docs/production-examples`
+6. `docs/production-examples`
    - Add examples for reports, briefs, technical notes, images, and custom CSS.
 
-2. `chore/npm-package-readiness`
+## Production Hardening
+
+1. `chore/npm-package-readiness`
    - Finalize package metadata and publishable file list.
 
-3. `chore/release-automation`
+2. `chore/release-automation`
    - Add release automation after the first package-ready milestone.
 
-4. `docs/security-and-limits`
+3. `docs/security-and-limits`
    - Document raw HTML escaping, local image rules, and CSS assumptions.
 
-5. `feat/error-codes`
+4. `feat/error-codes`
    - Define stable CLI exit codes for scripts.
