@@ -5,6 +5,9 @@
 Towel.txt is pre-1.0. Security fixes will be released on the latest published
 version once package publishing begins.
 
+For renderer behavior and documented limits, see
+[docs/security-and-limits.md](docs/security-and-limits.md).
+
 ## Reporting a vulnerability
 
 Please do not open public issues for security vulnerabilities. Instead, use

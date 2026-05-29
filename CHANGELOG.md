@@ -39,6 +39,7 @@ Versioning after the first public release.
 - Release workflow for verified package dry-runs and optional publishing.
 - Print-friendly footnotes with backlinks.
 - Render summary JSON files for CI and script workflows.
+- Security and limits documentation for rendering, image copying, CSS, and PDF export.
 - Strict mode for failing renders when warnings are detected.
 - Stdin Markdown input with `--stdin`.
 - Stdout HTML output with `--stdout`.
