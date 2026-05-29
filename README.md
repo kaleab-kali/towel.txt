@@ -150,7 +150,7 @@ The CLI supports:
 - Named themes: `default`, `compact`, and `report`.
 - Output overwrite protection with an explicit `--force` option.
 - Print page size and margin configuration.
-- Relative local image asset copying.
+- Relative local image asset copying with copied, skipped, and missing diagnostics.
 - Table of contents generation.
 - Optional table of contents suppression.
 - Project config files for shared defaults.
@@ -240,6 +240,8 @@ and printed from the browser print dialog.
 
 When output is written to a different directory, safe relative Markdown image
 paths such as `images/diagram.png` are copied beside the generated HTML output.
+The CLI reports copied images, skipped remote or unsafe sources, and missing
+local files.
 
 PDF output uses browser print automation. Install Chrome, Edge, or Chromium, or
 pass `--browser <path>` if the executable is not on the default search path.

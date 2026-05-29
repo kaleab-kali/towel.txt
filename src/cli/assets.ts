@@ -1,7 +1,7 @@
 import { copyFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 
-import { extractLocalImageSources } from "../parser/images.js";
+import { extractImageReferences } from "../parser/images.js";
 
 export interface CopyImageAssetsOptions {
   inputPath: string;
@@ -11,8 +11,9 @@ export interface CopyImageAssetsOptions {
 
 export interface ImageAssetCopyResult {
   error?: string;
+  reason?: string;
   source: string;
-  status: "copied" | "missing" | "unchanged";
+  status: "copied" | "missing" | "skipped";
 }
 
 export async function copyLocalImageAssets(
@@ -20,15 +21,24 @@ export async function copyLocalImageAssets(
 ): Promise<ImageAssetCopyResult[]> {
   const inputDirectory = path.dirname(options.inputPath);
   const outputDirectory = path.dirname(options.outputPath);
-  const imageSources = extractLocalImageSources(options.markdown);
+  const imageReferences = extractImageReferences(options.markdown);
 
   return Promise.all(
-    imageSources.map(async (source) => {
+    imageReferences.map(async (reference) => {
+      if (reference.status === "skipped") {
+        return {
+          reason: reference.reason,
+          source: reference.source,
+          status: "skipped"
+        };
+      }
+
+      const { source } = reference;
       const sourcePath = path.resolve(inputDirectory, source);
       const targetPath = path.resolve(outputDirectory, source);
 
       if (sourcePath === targetPath) {
-        return { source, status: "unchanged" };
+        return { reason: "already in output directory", source, status: "skipped" };
       }
 
       try {

@@ -16,8 +16,8 @@ Versioning after the first public release.
 - Explicit page break markers and print break helper classes.
 - Example Markdown document and generated printable HTML output.
 - Example custom print CSS file.
-- Front matter metadata parsing for document title, author, and date fields.
-- Local relative image asset copying for generated HTML output.
+- Front matter metadata parsing for document title, subtitle, author, date, and cover fields.
+- Local relative image asset copying with copied, skipped, and missing diagnostics.
 - Markdown heading extraction with stable heading IDs.
 - Markdown body HTML rendering with safe raw HTML escaping.
 - Named document themes: `default`, `compact`, and `report`.

@@ -8,7 +8,7 @@ import { extractHeadings } from "../parser/headings.js";
 import { parseMarkdownInput } from "../parser/metadata.js";
 import { renderDocument } from "../render/document.js";
 import { CliUsageError, type CliCommand, type OutputFormat, parseCliArgs } from "./args.js";
-import { copyLocalImageAssets } from "./assets.js";
+import { copyLocalImageAssets, type ImageAssetCopyResult } from "./assets.js";
 import { type CliConfigDefaults, loadCliConfig } from "./config.js";
 import { type PdfPrintOptions, printHtmlToPdf } from "./pdf.js";
 import { type WatchFilesOptions, watchFiles } from "./watch.js";
@@ -213,11 +213,7 @@ async function renderCommand({
         })
       : [];
 
-    imageAssets.forEach((asset) => {
-      if (asset.status === "missing") {
-        io.stderr.write(`Warning: image asset "${asset.source}" was not copied: ${asset.error}\n`);
-      }
-    });
+    writeImageAssetDiagnostics(io, imageAssets);
   }
 
   io.stdout.write(`Wrote ${displayPath(io.cwd, requiredOutputPath(outputPath))}\n`);
@@ -311,6 +307,31 @@ function writeCliError(io: CliIo, error: unknown): void {
   if (error instanceof CliUsageError) {
     io.stderr.write(`Run "${packageName} --help" for usage.\n`);
   }
+}
+
+function writeImageAssetDiagnostics(io: CliIo, imageAssets: ImageAssetCopyResult[]): void {
+  imageAssets.forEach((asset) => {
+    if (asset.status === "copied") {
+      io.stdout.write(`Copied image asset: ${asset.source}\n`);
+      return;
+    }
+
+    if (asset.status === "missing") {
+      io.stderr.write(`Warning: image asset "${asset.source}" is missing: ${asset.error}\n`);
+      return;
+    }
+
+    if (asset.reason === "already in output directory") {
+      io.stdout.write(`Skipped image asset: ${asset.source} (${asset.reason})\n`);
+      return;
+    }
+
+    io.stderr.write(
+      `Warning: image asset "${asset.source}" was skipped: ${
+        asset.reason ?? "unsupported image source"
+      }\n`
+    );
+  });
 }
 
 function getOutputFormat(

@@ -472,6 +472,7 @@ describe("runCli", () => {
     const inputPath = path.join(temporaryDirectory, "brief.md");
     const imagePath = path.join(temporaryDirectory, "images", "diagram.png");
     const copiedImagePath = path.join(temporaryDirectory, "dist", "images", "diagram.png");
+    const output = createBufferedOutput();
 
     await writeFile(inputPath, "![Diagram](images/diagram.png)", "utf8");
     await mkdir(path.dirname(imagePath), { recursive: true });
@@ -480,10 +481,11 @@ describe("runCli", () => {
     const exitCode = await runCli(["brief.md", "--output", "dist/brief.html"], {
       cwd: temporaryDirectory,
       stderr: createBufferedOutput(),
-      stdout: createBufferedOutput()
+      stdout: output
     });
 
     expect(exitCode).toBe(0);
+    expect(output.value).toContain("Copied image asset: images/diagram.png");
     expect(await readFile(copiedImagePath, "utf8")).toBe("image-bytes");
   });
 
@@ -500,7 +502,25 @@ describe("runCli", () => {
     });
 
     expect(exitCode).toBe(0);
-    expect(errors.value).toContain('Warning: image asset "images/missing.png" was not copied:');
+    expect(errors.value).toContain('Warning: image asset "images/missing.png" is missing:');
+  });
+
+  it("warns when an image asset source is skipped", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const errors = createBufferedOutput();
+
+    await writeFile(inputPath, "![Remote](https://example.com/image.png)", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--output", "dist/brief.html"], {
+      cwd: temporaryDirectory,
+      stderr: errors,
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(0);
+    expect(errors.value).toContain(
+      'Warning: image asset "https://example.com/image.png" was skipped: remote or protocol-based image source'
+    );
   });
 
   it("uses the default output path when output is omitted", async () => {
