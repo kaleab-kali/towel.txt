@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semver version to release. Must match package.json.
+        required: true
+        type: string
+      publish:
+        description: Publish to npm and create a GitHub release.
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify release version
+        run: node scripts/verify-release-version.mjs "${{ inputs.version }}"
+
+      - name: Release checks
+        run: pnpm release:check
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Package smoke test
+        run: pnpm smoke:package
+
+      - name: Package dry run
+        run: npm pack --dry-run
+
+      - name: Extract release notes
+        if: ${{ inputs.publish }}
+        run: node scripts/extract-release-notes.mjs "${{ inputs.version }}" release-notes.md
+
+      - name: Publish package
+        if: ${{ inputs.publish }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance
+
+      - name: Create GitHub release
+        if: ${{ inputs.publish }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "v${{ inputs.version }}" --target "${{ github.sha }}" --title "towel-txt ${{ inputs.version }}" --notes-file release-notes.md
