@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `chore/release-automation`
+### `docs/security-and-limits`
 
-Add release automation after the first package-ready milestone.
+Document raw HTML escaping, local image rules, and CSS assumptions.
 
 ## Completed Features
 
@@ -97,13 +97,13 @@ hardening.
 7. `chore/npm-package-readiness`
    - Finalize package metadata and publishable file list.
 
-## Production Hardening
-
-1. `chore/release-automation`
+8. `chore/release-automation`
    - Add release automation after the first package-ready milestone.
 
-2. `docs/security-and-limits`
+## Production Hardening
+
+1. `docs/security-and-limits`
    - Document raw HTML escaping, local image rules, and CSS assumptions.
 
-3. `feat/error-codes`
+2. `feat/error-codes`
    - Define stable CLI exit codes for scripts.
