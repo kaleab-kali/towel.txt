@@ -286,6 +286,8 @@ See [examples/towel-txt.config.yaml](examples/towel-txt.config.yaml) for a
 small config example.
 See [docs/examples.md](docs/examples.md) for report, brief, technical note,
 image, and custom CSS workflows.
+See [docs/security-and-limits.md](docs/security-and-limits.md) for renderer
+security behavior and operational limits.
 
 The generated HTML is self-contained, so it can be opened directly in a browser
 and printed from the browser print dialog.

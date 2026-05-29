@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `docs/security-and-limits`
+### `feat/error-codes`
 
-Document raw HTML escaping, local image rules, and CSS assumptions.
+Define stable CLI exit codes for scripts.
 
 ## Completed Features
 
@@ -100,10 +100,10 @@ hardening.
 8. `chore/release-automation`
    - Add release automation after the first package-ready milestone.
 
-## Production Hardening
-
-1. `docs/security-and-limits`
+9. `docs/security-and-limits`
    - Document raw HTML escaping, local image rules, and CSS assumptions.
 
-2. `feat/error-codes`
+## Production Hardening
+
+1. `feat/error-codes`
    - Define stable CLI exit codes for scripts.
