@@ -188,6 +188,7 @@ The CLI supports:
 - Stdout output for shell pipelines.
 - Stdin input for shell pipelines.
 - Strict mode for CI workflows that should fail on warnings.
+- Stable CLI exit codes for scripts.
 - Default screen and print styles.
 
 ## Metadata

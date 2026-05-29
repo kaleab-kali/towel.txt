@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 
 import { isThemeName, type ThemeName } from "../theme/themes.js";
+import { cliExitCodes, type CliExitCode } from "./exit-codes.js";
 
 export type OutputFormat = "html" | "pdf";
 
@@ -38,9 +39,19 @@ export type CliCommand =
   | { kind: "version" };
 
 export class CliUsageError extends Error {
-  constructor(message: string) {
+  readonly exitCode: CliExitCode;
+
+  constructor(message: string, exitCode: CliExitCode = cliExitCodes.usageError) {
     super(message);
     this.name = "CliUsageError";
+    this.exitCode = exitCode;
+  }
+}
+
+export class CliStrictModeError extends CliUsageError {
+  constructor(message: string) {
+    super(message, cliExitCodes.strictWarnings);
+    this.name = "CliStrictModeError";
   }
 }
 

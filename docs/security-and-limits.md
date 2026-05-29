@@ -42,7 +42,7 @@ Image references are skipped when they are:
 - paths with empty path segments
 
 Skipped and missing image assets are reported as warnings. With `--strict`, the
-render fails on those warnings.
+render fails on those warnings with exit code `3`.
 
 If strict mode is not enabled, skipped image references remain in the generated
 HTML as written. A browser may still request remote image URLs when opening the

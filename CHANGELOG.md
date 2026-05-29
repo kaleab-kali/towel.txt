@@ -40,6 +40,7 @@ Versioning after the first public release.
 - Print-friendly footnotes with backlinks.
 - Render summary JSON files for CI and script workflows.
 - Security and limits documentation for rendering, image copying, CSS, and PDF export.
+- Stable CLI exit codes for usage errors, render errors, and strict warning failures.
 - Strict mode for failing renders when warnings are detected.
 - Stdin Markdown input with `--stdin`.
 - Stdout HTML output with `--stdout`.

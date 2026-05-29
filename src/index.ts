@@ -6,7 +6,8 @@ export {
   type DocumentMetadata,
   type ParsedMarkdownInput
 } from "./parser/metadata.js";
-export { parseCliArgs, CliUsageError, type CliCommand } from "./cli/args.js";
+export { parseCliArgs, CliUsageError, CliStrictModeError, type CliCommand } from "./cli/args.js";
+export { cliExitCodes, type CliExitCode } from "./cli/exit-codes.js";
 export { getDefaultOutputPath, getHelpText, runCli, type CliIo } from "./cli/run.js";
 export {
   copyLocalImageAssets,
