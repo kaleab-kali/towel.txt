@@ -11,6 +11,12 @@ describe("extractLocalImageSources", () => {
     ).toEqual(["images/one.png", "assets/two.jpg"]);
   });
 
+  it("accepts Windows separators in safe relative image sources", () => {
+    expect(extractLocalImageSources("![Diagram](images\\diagram.png)")).toEqual([
+      "images\\diagram.png"
+    ]);
+  });
+
   it("ignores remote, absolute, data, hash, query, and traversal image sources", () => {
     expect(
       extractLocalImageSources(`![Remote](https://example.com/image.png)
@@ -18,7 +24,8 @@ describe("extractLocalImageSources", () => {
 ![Absolute](/images/one.png)
 ![Hash](image.png#size)
 ![Query](image.png?v=1)
-![Traversal](../image.png)`)
+![Traversal](../image.png)
+![WindowsTraversal](..\\image.png)`)
     ).toEqual([]);
   });
 
@@ -28,7 +35,8 @@ describe("extractLocalImageSources", () => {
 ![Remote](https://example.com/image.png)
 ![Absolute](/images/one.png)
 ![Query](image.png?v=1)
-![Traversal](../image.png)`)
+![Traversal](../image.png)
+![WindowsTraversal](..\\image.png)`)
     ).toEqual([
       { source: "images/one.png", status: "local" },
       {
@@ -45,6 +53,11 @@ describe("extractLocalImageSources", () => {
       {
         reason: "parent directory traversal is not copied",
         source: "../image.png",
+        status: "skipped"
+      },
+      {
+        reason: "parent directory traversal is not copied",
+        source: "..\\image.png",
         status: "skipped"
       }
     ]);

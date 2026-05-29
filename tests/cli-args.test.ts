@@ -184,6 +184,12 @@ describe("parseCliArgs", () => {
     });
   });
 
+  it("normalizes Windows separators in asset directory options", () => {
+    expect(parseCliArgs(["doc.md", "--asset-dir", "assets\\images"])).toMatchObject({
+      assetDirectory: "assets/images"
+    });
+  });
+
   it("parses an explicit cover page disablement", () => {
     expect(parseCliArgs(["doc.md", "--no-cover"])).toMatchObject({
       cover: false,

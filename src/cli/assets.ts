@@ -36,8 +36,9 @@ export async function copyLocalImageAssets(
       }
 
       const { source } = reference;
-      const targetSource = getTargetSource(source, options.assetDirectory);
-      const sourcePath = path.resolve(inputDirectory, source);
+      const normalizedSource = source.replace(/\\/g, "/");
+      const targetSource = getTargetSource(normalizedSource, options.assetDirectory);
+      const sourcePath = path.resolve(inputDirectory, normalizedSource);
       const targetPath = path.resolve(outputDirectory, targetSource);
 
       if (sourcePath === targetPath) {

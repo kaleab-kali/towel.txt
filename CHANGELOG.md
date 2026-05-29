@@ -18,6 +18,7 @@ Versioning after the first public release.
 - Example custom print CSS file.
 - Front matter metadata parsing for document title, subtitle, author, date, and cover fields.
 - Local relative image asset copying with copied, skipped, and missing diagnostics.
+- Local image paths with Windows separators are handled consistently across platforms.
 - Local image asset output directories with generated image path rewriting.
 - Markdown heading extraction with stable heading IDs.
 - Markdown body HTML rendering with safe raw HTML escaping.
