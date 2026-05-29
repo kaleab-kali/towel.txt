@@ -25,6 +25,8 @@ export type CliCommand =
       pageSize?: string;
       stdout: boolean;
       stdin: boolean;
+      strict: boolean;
+      strictSpecified: boolean;
       subtitle?: string;
       summaryJsonPath?: string;
       tableOfContents: boolean;
@@ -100,10 +102,16 @@ export function parseCliArgs(argv: string[]): CliCommand {
         "no-minify": {
           type: "boolean"
         },
+        "no-strict": {
+          type: "boolean"
+        },
         stdout: {
           type: "boolean"
         },
         stdin: {
+          type: "boolean"
+        },
+        strict: {
           type: "boolean"
         },
         subtitle: {
@@ -154,6 +162,10 @@ export function parseCliArgs(argv: string[]): CliCommand {
     throw new CliUsageError("Do not pass --minify with --no-minify.");
   }
 
+  if (parsed.values.strict === true && parsed.values["no-strict"] === true) {
+    throw new CliUsageError("Do not pass --strict with --no-strict.");
+  }
+
   if (parsed.values.stdin === true && parsed.positionals.length > 0) {
     throw new CliUsageError("Do not pass an input file when using --stdin.");
   }
@@ -181,6 +193,8 @@ export function parseCliArgs(argv: string[]): CliCommand {
     pageSize: getStringOption(parsed.values["page-size"]),
     stdin: parsed.values.stdin === true,
     stdout: parsed.values.stdout === true,
+    strict: parsed.values.strict === true && parsed.values["no-strict"] !== true,
+    strictSpecified: parsed.values.strict === true || parsed.values["no-strict"] === true,
     subtitle: getStringOption(parsed.values.subtitle),
     summaryJsonPath: getStringOption(parsed.values["summary-json"]),
     tableOfContents: parsed.values["no-toc"] !== true,

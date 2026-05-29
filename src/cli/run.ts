@@ -5,7 +5,7 @@ import { Readable } from "node:stream";
 
 import { packageName, packageVersion } from "../meta.js";
 import { extractHeadings } from "../parser/headings.js";
-import { parseMarkdownInput } from "../parser/metadata.js";
+import { getMetadataWarnings, parseMarkdownInput } from "../parser/metadata.js";
 import { renderDocument } from "../render/document.js";
 import { minifyHtml } from "../render/minify.js";
 import { CliUsageError, type CliCommand, type OutputFormat, parseCliArgs } from "./args.js";
@@ -144,6 +144,8 @@ function applyConfigDefaults(
     minifySpecified: command.minifySpecified || defaults.minify !== undefined,
     outputPath: command.outputPath ?? defaults.outputPath,
     pageSize: command.pageSize ?? defaults.pageSize,
+    strict: command.strictSpecified ? command.strict : (defaults.strict ?? command.strict),
+    strictSpecified: command.strictSpecified || defaults.strict !== undefined,
     subtitle: command.subtitle ?? defaults.subtitle,
     summaryJsonPath: command.summaryJsonPath ?? defaults.summaryJsonPath,
     tableOfContents: command.tableOfContentsSpecified
@@ -193,6 +195,7 @@ async function renderCommand({
   const markdown = command.stdin
     ? await readStdin(io.stdin ?? Readable.from([]))
     : await readFile(requiredInputPath(inputPath), "utf8");
+  const metadataWarnings = getMetadataWarnings(markdown);
 
   if (command.stdin && !hasTitleSource(markdown, command.title)) {
     throw new CliUsageError("Expected --title, front matter title, or H1 when reading from stdin.");
@@ -210,6 +213,12 @@ async function renderCommand({
           outputPath: requiredOutputPath(outputPath)
         })
       : [];
+  const warnings = [...metadataWarnings, ...getImageAssetWarnings(imageAssets)];
+
+  if (command.strict && warnings.length > 0) {
+    throw new CliUsageError(formatStrictModeWarnings(warnings));
+  }
+
   const html = renderDocument(markdown, {
     cover: command.coverSpecified ? command.cover : undefined,
     imageSourceMap: createImageSourceMap(imageAssets),
@@ -256,7 +265,7 @@ async function renderCommand({
       minified: command.stdout || outputFormat === "html" ? command.minify : false,
       outputPath: outputPath ?? null,
       stdout: command.stdout,
-      warnings: getImageAssetWarnings(imageAssets)
+      warnings
     });
   }
 
@@ -287,11 +296,13 @@ Options:
       --no-config      Disable default config file discovery.
       --no-cover       Disable a cover page from metadata or config.
       --no-minify      Disable minified HTML output from config.
+      --no-strict      Disable strict mode from config.
       --no-toc         Disable automatic table of contents rendering.
   -o, --output <path>  Output path. Defaults to input filename with the selected extension.
       --page-size <v>  Print page size, for example "letter", "A4", or "A4 landscape".
       --stdin          Read Markdown input from stdin instead of a file.
       --stdout         Write generated HTML to stdout instead of a file.
+      --strict         Fail the render when warnings are detected.
       --subtitle <txt> Override the document subtitle.
       --summary-json <path> Write a machine-readable render summary JSON file.
       --theme <name>   Document theme: "default", "compact", or "report".
@@ -346,6 +357,15 @@ function getWatchedFiles(
 
 function displayPath(cwd: string, filePath: string): string {
   return path.relative(cwd, filePath) || filePath;
+}
+
+function formatStrictModeWarnings(warnings: string[]): string {
+  const label = warnings.length === 1 ? "warning" : "warnings";
+
+  return [
+    `Strict mode failed with ${warnings.length} ${label}:`,
+    ...warnings.map((warning) => `- ${warning}`)
+  ].join("\n");
 }
 
 function writeCliError(io: CliIo, error: unknown): void {

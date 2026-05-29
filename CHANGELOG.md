@@ -32,6 +32,7 @@ Versioning after the first public release.
 - Project config files with `--config` and `--no-config`.
 - Print-friendly footnotes with backlinks.
 - Render summary JSON files for CI and script workflows.
+- Strict mode for failing renders when warnings are detected.
 - Stdin Markdown input with `--stdin`.
 - Stdout HTML output with `--stdout`.
 - Syntax highlighting for JavaScript, TypeScript, JSON, and shell code fences.

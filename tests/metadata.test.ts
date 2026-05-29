@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { MetadataParseError, parseMarkdownInput } from "../src/parser/metadata.js";
+import {
+  getMetadataWarnings,
+  MetadataParseError,
+  parseMarkdownInput
+} from "../src/parser/metadata.js";
 
 describe("parseMarkdownInput", () => {
   it("extracts supported front matter metadata and content", () => {
@@ -55,5 +59,21 @@ Body`)
 ---
 Body`)
     ).toThrow(MetadataParseError);
+  });
+
+  it("reports metadata warnings for strict validation", () => {
+    expect(
+      getMetadataWarnings(`---
+title:
+  nested: value
+cover: yes
+extra: ignored
+---
+Body`)
+    ).toEqual([
+      'Warning: unsupported metadata field "extra" was ignored.',
+      'Warning: metadata field "title" must be a string, number, or boolean.',
+      'Warning: metadata field "cover" must be a boolean.'
+    ]);
   });
 });

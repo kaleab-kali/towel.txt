@@ -64,6 +64,12 @@ Write a JSON summary for CI or scripts:
 towel-txt document.md -o document.html --summary-json summary.json
 ```
 
+Fail the render when warnings are detected:
+
+```bash
+towel-txt document.md -o document.html --strict
+```
+
 Set print page size and margins:
 
 ```bash
@@ -178,6 +184,7 @@ The CLI supports:
 - Watch mode for rebuilding file output during local editing.
 - Stdout output for shell pipelines.
 - Stdin input for shell pipelines.
+- Strict mode for CI workflows that should fail on warnings.
 - Default screen and print styles.
 
 ## Metadata
@@ -240,6 +247,7 @@ cover: true
 pageSize: A4
 margin: 18mm
 minify: false
+strict: false
 summaryJson: dist/summary.json
 tableOfContents: true
 ```
@@ -249,7 +257,14 @@ table of contents and one command needs it enabled.
 
 Supported config fields are `output`, `assetDir`, `css`, `format`, `theme`,
 `title`, `subtitle`, `cover`, `pageSize`, `margin`, `minify`,
-`summaryJson`, `tableOfContents`, and `browser`.
+`strict`, `summaryJson`, `tableOfContents`, and `browser`.
+
+## Strict Mode
+
+Use `--strict` to fail the command when warnings are detected. Strict mode
+currently fails on missing or skipped image assets and front matter metadata
+that would otherwise be ignored, such as unsupported fields or invalid value
+types. Use `--no-strict` to disable a config default for one command.
 
 ## JSON Summary
 

@@ -640,6 +640,25 @@ describe("runCli", () => {
     expect(errors.value).toContain('Warning: image asset "images/missing.png" is missing:');
   });
 
+  it("fails in strict mode when image warnings are detected", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "dist", "brief.html");
+    const errors = createBufferedOutput();
+
+    await writeFile(inputPath, "# Brief\n\n![Missing](images/missing.png)", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--output", "dist/brief.html", "--strict"], {
+      cwd: temporaryDirectory,
+      stderr: errors,
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(1);
+    expect(errors.value).toContain("Strict mode failed with 1 warning:");
+    expect(errors.value).toContain('Warning: image asset "images/missing.png" is missing:');
+    await expect(readFile(outputPath, "utf8")).rejects.toThrow();
+  });
+
   it("warns when an image asset source is skipped", async () => {
     const inputPath = path.join(temporaryDirectory, "brief.md");
     const errors = createBufferedOutput();
@@ -656,6 +675,32 @@ describe("runCli", () => {
     expect(errors.value).toContain(
       'Warning: image asset "https://example.com/image.png" was skipped: remote or protocol-based image source'
     );
+  });
+
+  it("fails in strict mode when metadata warnings are detected", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "brief.html");
+    const errors = createBufferedOutput();
+
+    await writeFile(
+      inputPath,
+      ["---", "title:", "  nested: value", "unknown: ignored", "---", "# Brief"].join("\n"),
+      "utf8"
+    );
+
+    const exitCode = await runCli(["brief.md", "--strict"], {
+      cwd: temporaryDirectory,
+      stderr: errors,
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(1);
+    expect(errors.value).toContain("Strict mode failed with 2 warnings:");
+    expect(errors.value).toContain('Warning: unsupported metadata field "unknown" was ignored.');
+    expect(errors.value).toContain(
+      'Warning: metadata field "title" must be a string, number, or boolean.'
+    );
+    await expect(readFile(outputPath, "utf8")).rejects.toThrow();
   });
 
   it("uses the default output path when output is omitted", async () => {
@@ -701,6 +746,7 @@ describe("runCli", () => {
         "subtitle: Configured Subtitle",
         "cover: true",
         "css: print.css",
+        "strict: true",
         "theme: report",
         "pageSize: A4",
         "margin: 20mm",
@@ -752,6 +798,7 @@ describe("runCli", () => {
         "output: config.html",
         "title: Config Title",
         "cover: true",
+        "strict: true",
         "theme: report",
         "minify: true",
         "tableOfContents: false"
@@ -769,6 +816,7 @@ describe("runCli", () => {
         "--theme",
         "compact",
         "--no-minify",
+        "--no-strict",
         "--toc",
         "--no-cover"
       ],

@@ -22,6 +22,8 @@ export class MetadataParseError extends Error {
 }
 
 const frontMatterPattern = /^(?:\uFEFF)?---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/;
+const stringMetadataFields = new Set(["author", "date", "subtitle", "title"]);
+const supportedMetadataFields = new Set([...stringMetadataFields, "cover"]);
 
 export function parseMarkdownInput(markdown: string): ParsedMarkdownInput {
   const match = frontMatterPattern.exec(markdown);
@@ -39,6 +41,40 @@ export function parseMarkdownInput(markdown: string): ParsedMarkdownInput {
     contentLineOffset: countLines(match[0]),
     metadata: normalizeMetadata(parseFrontMatter(match[1]))
   };
+}
+
+export function getMetadataWarnings(markdown: string): string[] {
+  const match = frontMatterPattern.exec(markdown);
+
+  if (!match) {
+    return [];
+  }
+
+  const value = parseFrontMatter(match[1]);
+
+  if (!isPlainRecord(value)) {
+    throw new MetadataParseError("Front matter must be a YAML mapping.");
+  }
+
+  const warnings: string[] = [];
+
+  Object.keys(value)
+    .filter((field) => !supportedMetadataFields.has(field))
+    .forEach((field) => {
+      warnings.push(`Warning: unsupported metadata field "${field}" was ignored.`);
+    });
+
+  stringMetadataFields.forEach((field) => {
+    if (hasOwn(value, field) && !isStringMetadataValue(value[field])) {
+      warnings.push(`Warning: metadata field "${field}" must be a string, number, or boolean.`);
+    }
+  });
+
+  if (hasOwn(value, "cover") && typeof value.cover !== "boolean") {
+    warnings.push('Warning: metadata field "cover" must be a boolean.');
+  }
+
+  return warnings;
 }
 
 function countLines(value: string): number {
@@ -86,4 +122,12 @@ function getScalarBoolean(value: unknown): boolean | undefined {
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasOwn(value: Record<string, unknown>, field: string): boolean {
+  return Object.prototype.hasOwnProperty.call(value, field);
+}
+
+function isStringMetadataValue(value: unknown): boolean {
+  return typeof value === "string" || typeof value === "number" || typeof value === "boolean";
 }
