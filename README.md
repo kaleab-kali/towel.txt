@@ -21,6 +21,7 @@ Package publishing is planned after the core document workflow is stable.
 - Highlight common code fences with print-friendly colors.
 - Render footnotes with backlinks for longer documents.
 - Add an optional cover page from document metadata.
+- Insert explicit print page breaks when a document needs fixed pagination.
 - Keep output simple enough to inspect, customize, and share.
 - Provide a focused CLI that works well in scripts and local workflows.
 
@@ -81,6 +82,16 @@ Add a cover page for a rendered document:
 towel-txt document.md -o document.html --cover --subtitle "Quarterly planning notes"
 ```
 
+Insert a print page break by placing a marker on its own line:
+
+```md
+First section.
+
+[[page-break]]
+
+Second section.
+```
+
 Rebuild output when the Markdown or custom CSS file changes:
 
 ```bash
@@ -131,6 +142,7 @@ The CLI supports:
 - Syntax highlighting for JavaScript, TypeScript, JSON, and shell code fences.
 - Footnotes using `[^label]` references and matching definitions.
 - Optional cover pages from metadata, config, or `--cover`.
+- Explicit page break markers: `[[page-break]]`, `\pagebreak`, and `\newpage`.
 - Document title configuration.
 - Front matter metadata for title, subtitle, author, date, and cover pages.
 - Custom CSS appended to the default document styles.
@@ -181,6 +193,12 @@ Detailed context can live in a note.[^context]
 
 Generated footnotes are rendered at the end of the document with backlinks to
 their references.
+
+## Page Breaks
+
+Use `[[page-break]]`, `\pagebreak`, or `\newpage` on its own line to insert an
+explicit print break. The generated CSS also includes `.break-before-page`,
+`.break-after-page`, and `.avoid-page-break` helpers for custom styles.
 
 ## Configuration
 

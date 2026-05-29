@@ -118,6 +118,14 @@ cover: true
     expect(html).toContain('<section class="footnotes" aria-label="Footnotes">');
   });
 
+  it("includes print-friendly page break styles", () => {
+    const html = renderDocument("Before.\n\n[[page-break]]\n\nAfter.");
+
+    expect(html).toContain(".page-break");
+    expect(html).toContain(".avoid-page-break");
+    expect(html).toContain('<div class="page-break" aria-hidden="true"></div>');
+  });
+
   it("adds print page size and margin overrides", () => {
     const html = renderDocument("# Print", {
       margin: "18mm",

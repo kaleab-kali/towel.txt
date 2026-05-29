@@ -10,6 +10,7 @@ import {
 import { extractHeadings, type Heading } from "./headings.js";
 import { highlightCode } from "./highlight.js";
 import { parseMarkdownInput, type DocumentMetadata } from "./metadata.js";
+import { registerPageBreakRule } from "./page-breaks.js";
 
 export interface RenderedMarkdown {
   headings: Heading[];
@@ -35,6 +36,7 @@ export function renderMarkdown(markdown: string): RenderedMarkdown {
   });
 
   registerFootnoteRules(parser);
+  registerPageBreakRule(parser);
 
   const defaultHeadingOpenRule =
     parser.renderer.rules.heading_open ??
