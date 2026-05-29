@@ -205,12 +205,18 @@ towel-txt brief.md --output brief.html --watch
 
 ## Exit Behavior
 
-The command exits with `0` when rendering succeeds, help text is printed, or the
-version is printed.
+The command exits with stable codes for scripting:
 
-The command exits with `1` for usage errors and render failures. Usage errors
-are printed with a `Usage error:` prefix and include a reminder to run
-`towel-txt --help`.
+| Code | Meaning                                                                              |
+| ---- | ------------------------------------------------------------------------------------ |
+| `0`  | Success. Rendering succeeded, help text was printed, or the version was printed.     |
+| `1`  | Render error. An unexpected render or PDF export failure occurred.                   |
+| `2`  | Usage error. Arguments, config, output paths, or workflow combinations were invalid. |
+| `3`  | Strict warning failure. Strict mode converted warnings into a failed command.        |
 
-Strict mode turns warnings into usage errors. This is useful in CI when missing
-images, skipped unsafe image sources, or invalid metadata should fail the job.
+Usage errors are printed with a `Usage error:` prefix and include a reminder to
+run `towel-txt --help`.
+
+Strict mode turns warnings into failed commands with exit code `3`. This is
+useful in CI when missing images, skipped unsafe image sources, or invalid
+metadata should fail the job.

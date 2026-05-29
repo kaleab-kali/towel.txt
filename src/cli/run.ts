@@ -8,9 +8,16 @@ import { extractHeadings } from "../parser/headings.js";
 import { getMetadataWarnings, parseMarkdownInput } from "../parser/metadata.js";
 import { renderDocument } from "../render/document.js";
 import { minifyHtml } from "../render/minify.js";
-import { CliUsageError, type CliCommand, type OutputFormat, parseCliArgs } from "./args.js";
+import {
+  CliStrictModeError,
+  CliUsageError,
+  type CliCommand,
+  type OutputFormat,
+  parseCliArgs
+} from "./args.js";
 import { copyLocalImageAssets, type ImageAssetCopyResult } from "./assets.js";
 import { type CliConfigDefaults, loadCliConfig } from "./config.js";
+import { cliExitCodes, type CliExitCode } from "./exit-codes.js";
 import { type PdfPrintOptions, printHtmlToPdf } from "./pdf.js";
 import { getImageAssetWarning, getImageAssetWarnings, writeRenderSummary } from "./summary.js";
 import { type WatchFilesOptions, watchFiles } from "./watch.js";
@@ -31,12 +38,12 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
 
     if (parsedCommand.kind === "help") {
       io.stdout.write(getHelpText());
-      return 0;
+      return cliExitCodes.success;
     }
 
     if (parsedCommand.kind === "version") {
       io.stdout.write(`${packageName} ${packageVersion}\n`);
-      return 0;
+      return cliExitCodes.success;
     }
 
     const loadedConfig = await loadCliConfig({
@@ -114,10 +121,10 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
       });
     }
 
-    return 0;
+    return cliExitCodes.success;
   } catch (error) {
     writeCliError(io, error);
-    return 1;
+    return getCliErrorExitCode(error);
   }
 }
 
@@ -216,7 +223,7 @@ async function renderCommand({
   const warnings = [...metadataWarnings, ...getImageAssetWarnings(imageAssets)];
 
   if (command.strict && warnings.length > 0) {
-    throw new CliUsageError(formatStrictModeWarnings(warnings));
+    throw new CliStrictModeError(formatStrictModeWarnings(warnings));
   }
 
   const html = renderDocument(markdown, {
@@ -377,6 +384,14 @@ function writeCliError(io: CliIo, error: unknown): void {
   if (error instanceof CliUsageError) {
     io.stderr.write(`Run "${packageName} --help" for usage.\n`);
   }
+}
+
+function getCliErrorExitCode(error: unknown): CliExitCode {
+  if (error instanceof CliUsageError) {
+    return error.exitCode;
+  }
+
+  return cliExitCodes.renderError;
 }
 
 function writeImageAssetDiagnostics(io: CliIo, imageAssets: ImageAssetCopyResult[]): void {

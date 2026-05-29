@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { PdfPrintOptions } from "../src/cli/pdf.js";
 import { runCli } from "../src/cli/run.js";
 import type { WatchFilesOptions } from "../src/cli/watch.js";
+import { cliExitCodes } from "../src/index.js";
 
 let temporaryDirectory: string;
 
@@ -142,7 +143,7 @@ describe("runCli", () => {
       stdout: createBufferedOutput()
     });
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(cliExitCodes.usageError);
     expect(errors.value).toContain("Summary JSON file already exists. Use --force to overwrite.");
   });
 
@@ -328,7 +329,7 @@ describe("runCli", () => {
       stdout: createBufferedOutput()
     });
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(cliExitCodes.usageError);
     expect(errors.value).toContain("Output file already exists. Use --force to overwrite.");
     expect(await readFile(outputPath, "utf8")).toBe("existing html");
   });
@@ -365,7 +366,7 @@ describe("runCli", () => {
       stdout: createBufferedOutput()
     });
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(cliExitCodes.usageError);
     expect(errors.value).toContain("Output path cannot replace the input Markdown file.");
     expect(await readFile(inputPath, "utf8")).toBe("# Brief");
   });
@@ -398,7 +399,7 @@ describe("runCli", () => {
       stdout: createBufferedOutput()
     });
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(cliExitCodes.usageError);
     expect(errors.value).toContain("Output file already exists. Use --force to overwrite.");
     expect(await readFile(outputPath, "utf8")).toBe("existing html");
   });
@@ -524,8 +525,27 @@ describe("runCli", () => {
       stdout: createBufferedOutput()
     });
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(cliExitCodes.usageError);
     expect(errors.value).toContain("PDF output requires --output instead of --stdout.");
+  });
+
+  it("returns the render error code for unexpected render failures", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const errors = createBufferedOutput();
+
+    await writeFile(inputPath, "# Brief", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--format", "pdf"], {
+      cwd: temporaryDirectory,
+      pdfPrinter: async () => {
+        throw new Error("Printer failed.");
+      },
+      stderr: errors,
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(cliExitCodes.renderError);
+    expect(errors.value).toContain("Error: Printer failed.");
   });
 
   it("requires an output target when reading Markdown from stdin", async () => {
@@ -538,7 +558,7 @@ describe("runCli", () => {
       stdout: createBufferedOutput()
     });
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(cliExitCodes.usageError);
     expect(errors.value).toContain("Expected --output or --stdout when reading from stdin.");
   });
 
@@ -552,7 +572,7 @@ describe("runCli", () => {
       stdout: createBufferedOutput()
     });
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(cliExitCodes.usageError);
     expect(errors.value).toContain(
       "Expected --title, front matter title, or H1 when reading from stdin."
     );
@@ -653,7 +673,7 @@ describe("runCli", () => {
       stdout: createBufferedOutput()
     });
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(cliExitCodes.strictWarnings);
     expect(errors.value).toContain("Strict mode failed with 1 warning:");
     expect(errors.value).toContain('Warning: image asset "images/missing.png" is missing:');
     await expect(readFile(outputPath, "utf8")).rejects.toThrow();
@@ -694,7 +714,7 @@ describe("runCli", () => {
       stdout: createBufferedOutput()
     });
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(cliExitCodes.strictWarnings);
     expect(errors.value).toContain("Strict mode failed with 2 warnings:");
     expect(errors.value).toContain('Warning: unsupported metadata field "unknown" was ignored.');
     expect(errors.value).toContain(
@@ -896,7 +916,7 @@ describe("runCli", () => {
       stdout: createBufferedOutput()
     });
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(cliExitCodes.usageError);
     expect(errors.value).toContain("Unsupported config field: unknown.");
   });
 
@@ -949,7 +969,7 @@ describe("runCli", () => {
       }
     });
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(cliExitCodes.usageError);
     expect(watcherRan).toBe(false);
     expect(errors.value).toContain("Output file already exists. Use --force to overwrite.");
     expect(await readFile(outputPath, "utf8")).toBe("existing html");
@@ -965,7 +985,7 @@ describe("runCli", () => {
       stdout: createBufferedOutput()
     });
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(cliExitCodes.usageError);
     expect(errors.value).toContain("Watch mode requires an input file instead of --stdin.");
   });
 
@@ -981,7 +1001,7 @@ describe("runCli", () => {
       stdout: createBufferedOutput()
     });
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(cliExitCodes.usageError);
     expect(errors.value).toContain("Watch mode requires file output instead of --stdout.");
   });
 
@@ -994,7 +1014,7 @@ describe("runCli", () => {
       stdout: createBufferedOutput()
     });
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(cliExitCodes.usageError);
     expect(errors.value).toContain("Usage error: Expected exactly one Markdown input file.");
   });
 });
