@@ -32,6 +32,7 @@ Versioning after the first public release.
 - Print page size and margin options for generated HTML documents.
 - Printable HTML document rendering with default screen and print styles.
 - Project config files with `--config` and `--no-config`.
+- Release checks for changelog, package metadata, and version consistency.
 - Print-friendly footnotes with backlinks.
 - Render summary JSON files for CI and script workflows.
 - Strict mode for failing renders when warnings are detected.

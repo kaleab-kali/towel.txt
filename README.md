@@ -300,6 +300,7 @@ This repository uses Node.js, TypeScript, and pnpm.
 
 ```bash
 pnpm install
+pnpm release:check
 pnpm lint
 pnpm typecheck
 pnpm test
