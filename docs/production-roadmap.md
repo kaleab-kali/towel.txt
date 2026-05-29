@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `feat/strict-mode`
+### `test/cli-fixtures`
 
-Fail on missing images, invalid metadata, or warnings.
+Add fixture-based CLI tests with real input and output files.
 
 ## Completed Features
 
@@ -66,10 +66,13 @@ Fail on missing images, invalid metadata, or warnings.
 14. `feat/json-summary-output`
     - Emit a machine-readable summary for CI and scripts.
 
+15. `feat/strict-mode`
+    - Fail on missing images, invalid metadata, or warnings.
+
 ## Feature Backlog
 
-1. `feat/strict-mode`
-   - Fail on missing images, invalid metadata, or warnings.
+No remaining feature backlog items are currently planned before production
+hardening.
 
 ## Production Hardening
 

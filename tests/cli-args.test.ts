@@ -29,6 +29,7 @@ describe("parseCliArgs", () => {
         "--no-toc",
         "--summary-json",
         "dist/summary.json",
+        "--strict",
         "--stdout",
         "--force"
       ])
@@ -48,6 +49,8 @@ describe("parseCliArgs", () => {
       pageSize: "A4 landscape",
       stdin: false,
       stdout: true,
+      strict: true,
+      strictSpecified: true,
       subtitle: "Subtitle",
       summaryJsonPath: "dist/summary.json",
       tableOfContents: false,
@@ -69,6 +72,8 @@ describe("parseCliArgs", () => {
       coverSpecified: false,
       stdin: false,
       stdout: false,
+      strict: false,
+      strictSpecified: false,
       tableOfContents: true,
       tableOfContentsSpecified: false,
       watch: false
@@ -86,6 +91,8 @@ describe("parseCliArgs", () => {
       coverSpecified: false,
       stdin: true,
       stdout: true,
+      strict: false,
+      strictSpecified: false,
       tableOfContents: true,
       tableOfContentsSpecified: false,
       title: "Piped",
@@ -107,6 +114,8 @@ describe("parseCliArgs", () => {
       noConfig: false,
       stdin: false,
       stdout: false,
+      strict: false,
+      strictSpecified: false,
       tableOfContents: true,
       tableOfContentsSpecified: false,
       watch: false
@@ -126,6 +135,8 @@ describe("parseCliArgs", () => {
       noConfig: true,
       stdin: false,
       stdout: false,
+      strict: false,
+      strictSpecified: false,
       tableOfContents: true,
       tableOfContentsSpecified: false,
       watch: false
@@ -144,6 +155,8 @@ describe("parseCliArgs", () => {
       coverSpecified: false,
       stdin: false,
       stdout: false,
+      strict: false,
+      strictSpecified: false,
       tableOfContents: true,
       tableOfContentsSpecified: false,
       watch: true
@@ -161,6 +174,13 @@ describe("parseCliArgs", () => {
     expect(parseCliArgs(["doc.md", "--no-minify"])).toMatchObject({
       minify: false,
       minifySpecified: true
+    });
+  });
+
+  it("parses an explicit strict mode disablement", () => {
+    expect(parseCliArgs(["doc.md", "--no-strict"])).toMatchObject({
+      strict: false,
+      strictSpecified: true
     });
   });
 
@@ -199,6 +219,10 @@ describe("parseCliArgs", () => {
 
   it("fails when minify flags conflict", () => {
     expect(() => parseCliArgs(["doc.md", "--minify", "--no-minify"])).toThrow(CliUsageError);
+  });
+
+  it("fails when strict mode flags conflict", () => {
+    expect(() => parseCliArgs(["doc.md", "--strict", "--no-strict"])).toThrow(CliUsageError);
   });
 
   it("fails when stdin mode is combined with an input file", () => {
