@@ -62,6 +62,26 @@ describe("runCli", () => {
     expect(html).toContain("Footnote content.");
   });
 
+  it("can write minified HTML output", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "brief.html");
+
+    await writeFile(inputPath, "# Brief\n\n## Summary\n\nReady to print.", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--minify"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: createBufferedOutput()
+    });
+
+    const html = await readFile(outputPath, "utf8");
+
+    expect(exitCode).toBe(0);
+    expect(html).toContain("<!doctype html><html");
+    expect(html).toContain("</style></head><body>");
+    expect(html).not.toContain("\n  <main");
+  });
+
   it("renders a cover page from front matter metadata", async () => {
     const inputPath = path.join(temporaryDirectory, "brief.md");
     const outputPath = path.join(temporaryDirectory, "brief.html");
@@ -600,6 +620,7 @@ describe("runCli", () => {
         "theme: report",
         "pageSize: A4",
         "margin: 20mm",
+        "minify: true",
         "tableOfContents: false"
       ].join("\n"),
       "utf8"
@@ -614,6 +635,7 @@ describe("runCli", () => {
     const html = await readFile(outputPath, "utf8");
 
     expect(exitCode).toBe(0);
+    expect(html).toContain("<!doctype html><html");
     expect(html).toContain("<title>Configured Brief</title>");
     expect(html).toContain('src="configured-assets/images/diagram.png"');
     expect(await readFile(copiedImagePath, "utf8")).toBe("image-bytes");
@@ -638,6 +660,7 @@ describe("runCli", () => {
         "title: Config Title",
         "cover: true",
         "theme: report",
+        "minify: true",
         "tableOfContents: false"
       ].join("\n"),
       "utf8"
@@ -652,6 +675,7 @@ describe("runCli", () => {
         "CLI Title",
         "--theme",
         "compact",
+        "--no-minify",
         "--toc",
         "--no-cover"
       ],
@@ -668,6 +692,7 @@ describe("runCli", () => {
     expect(html).toContain("<title>CLI Title</title>");
     expect(html).not.toContain('class="cover-page"');
     expect(html).toContain("/* theme: compact */");
+    expect(html).toContain("\n  <main");
     expect(html).toContain('class="toc"');
     await expect(readFile(path.join(temporaryDirectory, "config.html"), "utf8")).rejects.toThrow();
   });

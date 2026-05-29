@@ -18,6 +18,8 @@ export type CliCommand =
       inputPath?: string;
       kind: "render";
       margin?: string;
+      minify: boolean;
+      minifySpecified: boolean;
       noConfig: boolean;
       outputPath?: string;
       pageSize?: string;
@@ -79,6 +81,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
         margin: {
           type: "string"
         },
+        minify: {
+          type: "boolean"
+        },
         "page-size": {
           type: "string"
         },
@@ -89,6 +94,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
           type: "boolean"
         },
         "no-cover": {
+          type: "boolean"
+        },
+        "no-minify": {
           type: "boolean"
         },
         stdout: {
@@ -138,6 +146,10 @@ export function parseCliArgs(argv: string[]): CliCommand {
     throw new CliUsageError("Do not pass --cover with --no-cover.");
   }
 
+  if (parsed.values.minify === true && parsed.values["no-minify"] === true) {
+    throw new CliUsageError("Do not pass --minify with --no-minify.");
+  }
+
   if (parsed.values.stdin === true && parsed.positionals.length > 0) {
     throw new CliUsageError("Do not pass an input file when using --stdin.");
   }
@@ -158,6 +170,8 @@ export function parseCliArgs(argv: string[]): CliCommand {
     ...(parsed.positionals[0] ? { inputPath: parsed.positionals[0] } : {}),
     kind: "render",
     margin: getStringOption(parsed.values.margin),
+    minify: parsed.values.minify === true && parsed.values["no-minify"] !== true,
+    minifySpecified: parsed.values.minify === true || parsed.values["no-minify"] === true,
     noConfig: parsed.values["no-config"] === true,
     outputPath: getStringOption(parsed.values.output),
     pageSize: getStringOption(parsed.values["page-size"]),

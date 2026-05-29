@@ -13,6 +13,7 @@ export interface CliConfigDefaults {
   cssPath?: string;
   format?: OutputFormat;
   margin?: string;
+  minify?: boolean;
   outputPath?: string;
   pageSize?: string;
   subtitle?: string;
@@ -38,6 +39,7 @@ const supportedFields = new Set([
   "css",
   "format",
   "margin",
+  "minify",
   "output",
   "pageSize",
   "subtitle",
@@ -103,6 +105,7 @@ function normalizeConfig(value: unknown, configDirectory: string): CliConfigDefa
     }),
     format: getOptionalFormat(value.format),
     margin: getOptionalString(value.margin, "margin"),
+    minify: getOptionalBoolean(value.minify, "minify"),
     outputPath: getOptionalPath(value.output, configDirectory, {
       allowBareCommand: false,
       fieldName: "output"

@@ -52,6 +52,12 @@ Place copied local image assets under a specific output folder:
 towel-txt document.md -o dist/document.html --asset-dir assets
 ```
 
+Generate compact HTML with layout whitespace removed:
+
+```bash
+towel-txt document.md -o document.html --minify
+```
+
 Set print page size and margins:
 
 ```bash
@@ -156,6 +162,7 @@ The CLI supports:
 - Heading anchors.
 - Named themes: `default`, `compact`, and `report`.
 - Output overwrite protection with an explicit `--force` option.
+- Optional minified HTML output with `--minify`.
 - Print page size and margin configuration.
 - Relative local image asset copying with copied, skipped, and missing diagnostics.
 - Table of contents generation.
@@ -225,6 +232,7 @@ subtitle: Quarterly planning notes
 cover: true
 pageSize: A4
 margin: 18mm
+minify: false
 tableOfContents: true
 ```
 
@@ -232,8 +240,8 @@ CLI flags override config defaults. Use `--toc` when a config file disables the
 table of contents and one command needs it enabled.
 
 Supported config fields are `output`, `assetDir`, `css`, `format`, `theme`,
-`title`, `subtitle`, `cover`, `pageSize`, `margin`, `tableOfContents`, and
-`browser`.
+`title`, `subtitle`, `cover`, `pageSize`, `margin`, `minify`,
+`tableOfContents`, and `browser`.
 
 ## Example
 

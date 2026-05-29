@@ -23,6 +23,7 @@ Versioning after the first public release.
 - Markdown body HTML rendering with safe raw HTML escaping.
 - Named document themes: `default`, `compact`, and `report`.
 - Optional cover pages from metadata, config, or CLI flags.
+- Optional minified HTML output with `--minify` or config defaults.
 - Optional table of contents suppression with `--no-toc`.
 - Output overwrite protection with `--force`.
 - PDF export through a local Chrome, Edge, or Chromium browser.
