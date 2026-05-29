@@ -126,6 +126,7 @@ function applyConfigDefaults(
 
   return {
     ...command,
+    assetDirectory: command.assetDirectory ?? defaults.assetDirectory,
     browserPath: command.browserPath ?? defaults.browserPath,
     cover: command.coverSpecified ? command.cover : (defaults.cover ?? command.cover),
     coverSpecified: command.coverSpecified || defaults.cover !== undefined,
@@ -177,8 +178,18 @@ async function renderCommand({
   const styles = command.cssPath
     ? await readFile(path.resolve(io.cwd, command.cssPath), "utf8")
     : undefined;
+  const imageAssets =
+    !command.stdout && outputFormat === "html" && inputPath
+      ? await copyLocalImageAssets({
+          assetDirectory: command.assetDirectory,
+          inputPath,
+          markdown,
+          outputPath: requiredOutputPath(outputPath)
+        })
+      : [];
   const html = renderDocument(markdown, {
     cover: command.coverSpecified ? command.cover : undefined,
+    imageSourceMap: createImageSourceMap(imageAssets),
     includeTableOfContents: command.tableOfContents,
     margin: command.margin,
     pageSize: command.pageSize,
@@ -205,14 +216,6 @@ async function renderCommand({
   } else {
     await writeFile(requiredOutputPath(outputPath), html, "utf8");
 
-    const imageAssets = inputPath
-      ? await copyLocalImageAssets({
-          inputPath,
-          markdown,
-          outputPath: requiredOutputPath(outputPath)
-        })
-      : [];
-
     writeImageAssetDiagnostics(io, imageAssets);
   }
 
@@ -229,6 +232,7 @@ Usage:
   ${packageName} --stdin --stdout [--title "Document Title"]
 
 Options:
+      --asset-dir <d> Place copied image assets under this output directory.
       --browser <path> Use a specific Chrome, Edge, or Chromium executable for PDF export.
       --config <path>  Load defaults from a specific config file.
       --cover          Add a cover page before the document body.
@@ -332,6 +336,19 @@ function writeImageAssetDiagnostics(io: CliIo, imageAssets: ImageAssetCopyResult
       }\n`
     );
   });
+}
+
+function createImageSourceMap(imageAssets: ImageAssetCopyResult[]): Map<string, string> {
+  const sourceMap = new Map<string, string>();
+
+  imageAssets.forEach((asset) => {
+    if (asset.targetSource) {
+      sourceMap.set(asset.source, asset.targetSource);
+      sourceMap.set(asset.source.replace(/\\/g, "/"), asset.targetSource);
+    }
+  });
+
+  return sourceMap;
 }
 
 function getOutputFormat(

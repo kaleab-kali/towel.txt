@@ -489,6 +489,37 @@ describe("runCli", () => {
     expect(await readFile(copiedImagePath, "utf8")).toBe("image-bytes");
   });
 
+  it("copies relative image assets into a configured asset directory", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const imagePath = path.join(temporaryDirectory, "images", "diagram.png");
+    const copiedImagePath = path.join(
+      temporaryDirectory,
+      "dist",
+      "assets",
+      "images",
+      "diagram.png"
+    );
+
+    await writeFile(inputPath, "![Diagram](images/diagram.png)", "utf8");
+    await mkdir(path.dirname(imagePath), { recursive: true });
+    await writeFile(imagePath, "image-bytes", "utf8");
+
+    const exitCode = await runCli(
+      ["brief.md", "--output", "dist/brief.html", "--asset-dir", "assets"],
+      {
+        cwd: temporaryDirectory,
+        stderr: createBufferedOutput(),
+        stdout: createBufferedOutput()
+      }
+    );
+
+    const html = await readFile(path.join(temporaryDirectory, "dist", "brief.html"), "utf8");
+
+    expect(exitCode).toBe(0);
+    expect(html).toContain('src="assets/images/diagram.png"');
+    expect(await readFile(copiedImagePath, "utf8")).toBe("image-bytes");
+  });
+
   it("warns when a relative image asset cannot be copied", async () => {
     const inputPath = path.join(temporaryDirectory, "brief.md");
     const errors = createBufferedOutput();
@@ -543,14 +574,25 @@ describe("runCli", () => {
   it("loads default rendering options from a project config file", async () => {
     const inputPath = path.join(temporaryDirectory, "brief.md");
     const cssPath = path.join(temporaryDirectory, "print.css");
+    const imagePath = path.join(temporaryDirectory, "images", "diagram.png");
     const outputPath = path.join(temporaryDirectory, "dist", "configured.html");
+    const copiedImagePath = path.join(
+      temporaryDirectory,
+      "dist",
+      "configured-assets",
+      "images",
+      "diagram.png"
+    );
 
-    await writeFile(inputPath, "# Brief\n\n## Summary", "utf8");
+    await writeFile(inputPath, "# Brief\n\n![Diagram](images/diagram.png)\n\n## Summary", "utf8");
+    await mkdir(path.dirname(imagePath), { recursive: true });
+    await writeFile(imagePath, "image-bytes", "utf8");
     await writeFile(cssPath, ".document { max-width: 640px; }", "utf8");
     await writeFile(
       path.join(temporaryDirectory, "towel-txt.config.yaml"),
       [
         "output: dist/configured.html",
+        "assetDir: configured-assets",
         "title: Configured Brief",
         "subtitle: Configured Subtitle",
         "cover: true",
@@ -573,6 +615,8 @@ describe("runCli", () => {
 
     expect(exitCode).toBe(0);
     expect(html).toContain("<title>Configured Brief</title>");
+    expect(html).toContain('src="configured-assets/images/diagram.png"');
+    expect(await readFile(copiedImagePath, "utf8")).toBe("image-bytes");
     expect(html).toContain('<section class="cover-page" aria-label="Cover page">');
     expect(html).toContain('<p class="cover-page-subtitle">Configured Subtitle</p>');
     expect(html).toContain("/* theme: report */");

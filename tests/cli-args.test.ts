@@ -10,6 +10,8 @@ describe("parseCliArgs", () => {
     expect(
       parseCliArgs([
         "doc.md",
+        "--asset-dir",
+        "assets",
         "--output",
         "dist/doc.html",
         "--title",
@@ -28,6 +30,7 @@ describe("parseCliArgs", () => {
         "--force"
       ])
     ).toEqual({
+      assetDirectory: "assets",
       cssPath: "theme.css",
       cover: true,
       coverSpecified: true,
@@ -153,6 +156,10 @@ describe("parseCliArgs", () => {
 
   it("fails when an unsupported output format is provided", () => {
     expect(() => parseCliArgs(["doc.md", "--format", "docx"])).toThrow(CliUsageError);
+  });
+
+  it("fails when an unsafe asset directory is provided", () => {
+    expect(() => parseCliArgs(["doc.md", "--asset-dir", "../assets"])).toThrow(CliUsageError);
   });
 
   it("fails when an unsupported theme is provided", () => {

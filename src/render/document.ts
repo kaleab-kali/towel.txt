@@ -5,6 +5,7 @@ import { renderTableOfContents } from "./toc.js";
 
 export interface RenderDocumentOptions extends PrintPageOptions {
   cover?: boolean;
+  imageSourceMap?: Map<string, string>;
   includeTableOfContents?: boolean;
   styles?: string;
   subtitle?: string;
@@ -13,7 +14,9 @@ export interface RenderDocumentOptions extends PrintPageOptions {
 }
 
 export function renderDocument(markdown: string, options: RenderDocumentOptions = {}): string {
-  const renderedMarkdown = renderMarkdown(markdown);
+  const renderedMarkdown = renderMarkdown(markdown, {
+    imageSourceMap: options.imageSourceMap
+  });
   const title =
     options.title ??
     renderedMarkdown.metadata.title ??

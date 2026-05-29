@@ -8,6 +8,7 @@ export type CliCommand =
   | { kind: "help" }
   | {
       browserPath?: string;
+      assetDirectory?: string;
       configPath?: string;
       cover: boolean;
       coverSpecified: boolean;
@@ -47,6 +48,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
       args: argv,
       options: {
         browser: {
+          type: "string"
+        },
+        "asset-dir": {
           type: "string"
         },
         config: {
@@ -143,6 +147,7 @@ export function parseCliArgs(argv: string[]): CliCommand {
   }
 
   return {
+    assetDirectory: getAssetDirectoryOption(parsed.values["asset-dir"], "--asset-dir"),
     browserPath: getStringOption(parsed.values.browser),
     configPath: getStringOption(parsed.values.config),
     cover: parsed.values.cover === true && parsed.values["no-cover"] !== true,
@@ -181,6 +186,33 @@ function getThemeOption(value: unknown): ThemeName | undefined {
 
 function getStringOption(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
+}
+
+function getAssetDirectoryOption(value: unknown, optionName: string): string | undefined {
+  const directory = getStringOption(value)?.trim();
+
+  if (!directory) {
+    return undefined;
+  }
+
+  if (
+    directory.includes("?") ||
+    directory.includes("#") ||
+    /^[a-z][a-z0-9+.-]*:/iu.test(directory) ||
+    directory.startsWith("/") ||
+    directory.startsWith("\\")
+  ) {
+    throw new CliUsageError(`Expected ${optionName} to be a safe relative directory.`);
+  }
+
+  const normalizedDirectory = directory.replace(/\\/g, "/");
+  const parts = normalizedDirectory.split("/");
+
+  if (parts.includes("..") || parts.includes("")) {
+    throw new CliUsageError(`Expected ${optionName} to be a safe relative directory.`);
+  }
+
+  return normalizedDirectory;
 }
 
 function getOutputFormatOption(value: unknown): OutputFormat | undefined {

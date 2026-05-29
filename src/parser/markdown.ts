@@ -18,7 +18,14 @@ export interface RenderedMarkdown {
   metadata: DocumentMetadata;
 }
 
-export function renderMarkdown(markdown: string): RenderedMarkdown {
+export interface RenderMarkdownOptions {
+  imageSourceMap?: Map<string, string>;
+}
+
+export function renderMarkdown(
+  markdown: string,
+  options: RenderMarkdownOptions = {}
+): RenderedMarkdown {
   const parsedInput = parseMarkdownInput(markdown);
   const parsedFootnotes = extractFootnotes(parsedInput.content);
   const headings = extractHeadings(parsedFootnotes.content).map((heading) => ({
@@ -54,6 +61,22 @@ export function renderMarkdown(markdown: string): RenderedMarkdown {
     return defaultHeadingOpenRule(tokens, index, options, environment, renderer);
   };
 
+  const defaultImageRule =
+    parser.renderer.rules.image ??
+    ((tokens: Token[], index: number, options, environment, renderer) =>
+      renderer.renderToken(tokens, index, options));
+
+  parser.renderer.rules.image = (tokens, index, parserOptions, environment, renderer) => {
+    const source = tokens[index].attrGet("src");
+    const targetSource = source ? getMappedImageSource(source, options.imageSourceMap) : undefined;
+
+    if (targetSource) {
+      tokens[index].attrSet("src", targetSource);
+    }
+
+    return defaultImageRule(tokens, index, parserOptions, environment, renderer);
+  };
+
   const footnoteEnvironment = createFootnoteEnvironment(parsedFootnotes.definitions);
   const renderedHtml = parser.render(parsedFootnotes.content, footnoteEnvironment).trimEnd();
   const footnotesHtml = renderFootnotes(footnoteEnvironment, (definition) =>
@@ -70,4 +93,11 @@ export function renderMarkdown(markdown: string): RenderedMarkdown {
     html: [renderedHtml, footnotesHtml].filter(Boolean).join("\n"),
     metadata: parsedInput.metadata
   };
+}
+
+function getMappedImageSource(
+  source: string,
+  imageSourceMap: Map<string, string> | undefined
+): string | undefined {
+  return imageSourceMap?.get(source) ?? imageSourceMap?.get(source.replace(/\\/g, "/"));
 }

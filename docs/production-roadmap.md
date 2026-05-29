@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `feat/asset-output-directory`
+### `feat/html-minify-option`
 
-Allow copied assets to be placed under a configured folder.
+Add optional minified HTML output.
 
 ## Completed Features
 
@@ -57,18 +57,18 @@ Allow copied assets to be placed under a configured folder.
     - Improve image diagnostics.
     - Report copied, skipped, and missing images clearly.
 
+12. `feat/asset-output-directory`
+    - Allow copied assets to be placed under a configured folder.
+
 ## Feature Backlog
 
-1. `feat/asset-output-directory`
-   - Allow copied assets to be placed under a configured folder.
-
-2. `feat/html-minify-option`
+1. `feat/html-minify-option`
    - Add optional minified HTML output.
 
-3. `feat/json-summary-output`
+2. `feat/json-summary-output`
    - Emit a machine-readable summary for CI and scripts.
 
-4. `feat/strict-mode`
+3. `feat/strict-mode`
    - Fail on missing images, invalid metadata, or warnings.
 
 ## Production Hardening
