@@ -25,6 +25,7 @@ describe("parseCliArgs", () => {
         "A4 landscape",
         "--margin",
         "18mm",
+        "--minify",
         "--no-toc",
         "--stdout",
         "--force"
@@ -38,6 +39,8 @@ describe("parseCliArgs", () => {
       inputPath: "doc.md",
       kind: "render",
       margin: "18mm",
+      minify: true,
+      minifySpecified: true,
       noConfig: false,
       outputPath: "dist/doc.html",
       pageSize: "A4 landscape",
@@ -56,6 +59,8 @@ describe("parseCliArgs", () => {
       force: false,
       inputPath: "doc.md",
       kind: "render",
+      minify: false,
+      minifySpecified: false,
       noConfig: false,
       cover: false,
       coverSpecified: false,
@@ -71,6 +76,8 @@ describe("parseCliArgs", () => {
     expect(parseCliArgs(["--stdin", "--stdout", "--title", "Piped"])).toEqual({
       force: false,
       kind: "render",
+      minify: false,
+      minifySpecified: false,
       noConfig: false,
       cover: false,
       coverSpecified: false,
@@ -92,6 +99,8 @@ describe("parseCliArgs", () => {
       format: "pdf",
       inputPath: "doc.md",
       kind: "render",
+      minify: false,
+      minifySpecified: false,
       noConfig: false,
       stdin: false,
       stdout: false,
@@ -109,6 +118,8 @@ describe("parseCliArgs", () => {
       force: false,
       inputPath: "doc.md",
       kind: "render",
+      minify: false,
+      minifySpecified: false,
       noConfig: true,
       stdin: false,
       stdout: false,
@@ -123,6 +134,8 @@ describe("parseCliArgs", () => {
       force: false,
       inputPath: "doc.md",
       kind: "render",
+      minify: false,
+      minifySpecified: false,
       noConfig: false,
       cover: false,
       coverSpecified: false,
@@ -138,6 +151,13 @@ describe("parseCliArgs", () => {
     expect(parseCliArgs(["doc.md", "--toc"])).toMatchObject({
       tableOfContents: true,
       tableOfContentsSpecified: true
+    });
+  });
+
+  it("parses an explicit minify disablement", () => {
+    expect(parseCliArgs(["doc.md", "--no-minify"])).toMatchObject({
+      minify: false,
+      minifySpecified: true
     });
   });
 
@@ -172,6 +192,10 @@ describe("parseCliArgs", () => {
 
   it("fails when cover page flags conflict", () => {
     expect(() => parseCliArgs(["doc.md", "--cover", "--no-cover"])).toThrow(CliUsageError);
+  });
+
+  it("fails when minify flags conflict", () => {
+    expect(() => parseCliArgs(["doc.md", "--minify", "--no-minify"])).toThrow(CliUsageError);
   });
 
   it("fails when stdin mode is combined with an input file", () => {

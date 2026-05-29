@@ -7,6 +7,7 @@ import { packageName, packageVersion } from "../meta.js";
 import { extractHeadings } from "../parser/headings.js";
 import { parseMarkdownInput } from "../parser/metadata.js";
 import { renderDocument } from "../render/document.js";
+import { minifyHtml } from "../render/minify.js";
 import { CliUsageError, type CliCommand, type OutputFormat, parseCliArgs } from "./args.js";
 import { copyLocalImageAssets, type ImageAssetCopyResult } from "./assets.js";
 import { type CliConfigDefaults, loadCliConfig } from "./config.js";
@@ -133,6 +134,8 @@ function applyConfigDefaults(
     cssPath: command.cssPath ?? defaults.cssPath,
     format: command.format ?? defaults.format,
     margin: command.margin ?? defaults.margin,
+    minify: command.minifySpecified ? command.minify : (defaults.minify ?? command.minify),
+    minifySpecified: command.minifySpecified || defaults.minify !== undefined,
     outputPath: command.outputPath ?? defaults.outputPath,
     pageSize: command.pageSize ?? defaults.pageSize,
     subtitle: command.subtitle ?? defaults.subtitle,
@@ -198,9 +201,10 @@ async function renderCommand({
     theme: command.theme,
     title: command.title
   });
+  const outputHtml = command.minify ? minifyHtml(html) : html;
 
   if (command.stdout) {
-    io.stdout.write(html);
+    io.stdout.write(outputHtml);
     return;
   }
 
@@ -214,7 +218,7 @@ async function renderCommand({
       outputPath: requiredOutputPath(outputPath)
     });
   } else {
-    await writeFile(requiredOutputPath(outputPath), html, "utf8");
+    await writeFile(requiredOutputPath(outputPath), outputHtml, "utf8");
 
     writeImageAssetDiagnostics(io, imageAssets);
   }
@@ -240,8 +244,10 @@ Options:
       --force          Overwrite an existing output file.
       --format <type>  Output format: "html" or "pdf". Defaults to html, or pdf for .pdf outputs.
       --margin <value> Print page margin, for example "0.75in" or "18mm".
+      --minify         Remove formatting whitespace from generated HTML output.
       --no-config      Disable default config file discovery.
       --no-cover       Disable a cover page from metadata or config.
+      --no-minify      Disable minified HTML output from config.
       --no-toc         Disable automatic table of contents rendering.
   -o, --output <path>  Output path. Defaults to input filename with the selected extension.
       --page-size <v>  Print page size, for example "letter", "A4", or "A4 landscape".

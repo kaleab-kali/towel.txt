@@ -3,4 +3,5 @@ css: print.css
 theme: report
 pageSize: A4
 margin: 18mm
+minify: false
 tableOfContents: true

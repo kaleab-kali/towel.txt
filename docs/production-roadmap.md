@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `feat/html-minify-option`
+### `feat/json-summary-output`
 
-Add optional minified HTML output.
+Emit a machine-readable summary for CI and scripts.
 
 ## Completed Features
 
@@ -60,15 +60,15 @@ Add optional minified HTML output.
 12. `feat/asset-output-directory`
     - Allow copied assets to be placed under a configured folder.
 
+13. `feat/html-minify-option`
+    - Add optional minified HTML output.
+
 ## Feature Backlog
 
-1. `feat/html-minify-option`
-   - Add optional minified HTML output.
-
-2. `feat/json-summary-output`
+1. `feat/json-summary-output`
    - Emit a machine-readable summary for CI and scripts.
 
-3. `feat/strict-mode`
+2. `feat/strict-mode`
    - Fail on missing images, invalid metadata, or warnings.
 
 ## Production Hardening

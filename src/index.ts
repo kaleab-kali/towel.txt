@@ -15,6 +15,7 @@ export {
 } from "./cli/assets.js";
 export { packageName, packageVersion } from "./meta.js";
 export { renderDocument, type RenderDocumentOptions } from "./render/document.js";
+export { minifyHtml } from "./render/minify.js";
 export { renderPrintPageStyles, type PrintPageOptions } from "./render/print-options.js";
 export { buildTableOfContents, renderTableOfContents, type TocItem } from "./render/toc.js";
 export { defaultDocumentStyles } from "./theme/default.js";
