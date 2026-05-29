@@ -4,6 +4,7 @@ import path from "node:path";
 import { extractImageReferences } from "../parser/images.js";
 
 export interface CopyImageAssetsOptions {
+  assetDirectory?: string;
   inputPath: string;
   markdown: string;
   outputPath: string;
@@ -14,6 +15,7 @@ export interface ImageAssetCopyResult {
   reason?: string;
   source: string;
   status: "copied" | "missing" | "skipped";
+  targetSource?: string;
 }
 
 export async function copyLocalImageAssets(
@@ -34,25 +36,42 @@ export async function copyLocalImageAssets(
       }
 
       const { source } = reference;
+      const targetSource = getTargetSource(source, options.assetDirectory);
       const sourcePath = path.resolve(inputDirectory, source);
-      const targetPath = path.resolve(outputDirectory, source);
+      const targetPath = path.resolve(outputDirectory, targetSource);
 
       if (sourcePath === targetPath) {
-        return { reason: "already in output directory", source, status: "skipped" };
+        return {
+          reason: "already in output directory",
+          source,
+          status: "skipped",
+          targetSource
+        };
       }
 
       try {
         await mkdir(path.dirname(targetPath), { recursive: true });
         await copyFile(sourcePath, targetPath);
 
-        return { source, status: "copied" };
+        return { source, status: "copied", targetSource };
       } catch (error) {
         return {
           error: error instanceof Error ? error.message : "Unable to copy image asset.",
           source,
-          status: "missing"
+          status: "missing",
+          targetSource
         };
       }
     })
   );
+}
+
+function getTargetSource(source: string, assetDirectory: string | undefined): string {
+  const normalizedSource = source.replace(/\\/g, "/");
+
+  if (!assetDirectory) {
+    return normalizedSource;
+  }
+
+  return `${assetDirectory}/${normalizedSource}`;
 }

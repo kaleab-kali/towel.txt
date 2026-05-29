@@ -46,6 +46,12 @@ Append a custom CSS file to the built-in print styles:
 towel-txt document.md -o document.html --css examples/print.css
 ```
 
+Place copied local image assets under a specific output folder:
+
+```bash
+towel-txt document.md -o dist/document.html --asset-dir assets
+```
+
 Set print page size and margins:
 
 ```bash
@@ -139,6 +145,7 @@ The CLI supports:
 - Markdown input files.
 - HTML output files.
 - PDF output files through Chrome, Edge, or Chromium.
+- Configurable copied asset output directories with `--asset-dir`.
 - Syntax highlighting for JavaScript, TypeScript, JSON, and shell code fences.
 - Footnotes using `[^label]` references and matching definitions.
 - Optional cover pages from metadata, config, or `--cover`.
@@ -209,6 +216,7 @@ directory. Use `--config <path>` to load a specific config file, or
 
 ```yaml
 output: dist/document.html
+assetDir: assets
 css: examples/print.css
 format: html
 theme: report
@@ -223,8 +231,9 @@ tableOfContents: true
 CLI flags override config defaults. Use `--toc` when a config file disables the
 table of contents and one command needs it enabled.
 
-Supported config fields are `output`, `css`, `format`, `theme`, `title`,
-`subtitle`, `cover`, `pageSize`, `margin`, `tableOfContents`, and `browser`.
+Supported config fields are `output`, `assetDir`, `css`, `format`, `theme`,
+`title`, `subtitle`, `cover`, `pageSize`, `margin`, `tableOfContents`, and
+`browser`.
 
 ## Example
 
@@ -241,7 +250,8 @@ and printed from the browser print dialog.
 When output is written to a different directory, safe relative Markdown image
 paths such as `images/diagram.png` are copied beside the generated HTML output.
 The CLI reports copied images, skipped remote or unsafe sources, and missing
-local files.
+local files. Use `--asset-dir <dir>` or config `assetDir` to place copied assets
+under a dedicated output folder and rewrite the generated image paths.
 
 PDF output uses browser print automation. Install Chrome, Edge, or Chromium, or
 pass `--browser <path>` if the executable is not on the default search path.

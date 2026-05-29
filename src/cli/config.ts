@@ -7,6 +7,7 @@ import { CliUsageError, type OutputFormat } from "./args.js";
 import { isThemeName, type ThemeName } from "../theme/themes.js";
 
 export interface CliConfigDefaults {
+  assetDirectory?: string;
   browserPath?: string;
   cover?: boolean;
   cssPath?: string;
@@ -31,6 +32,7 @@ const defaultConfigFilenames = [
   "towel-txt.config.json"
 ];
 const supportedFields = new Set([
+  "assetDir",
   "browser",
   "cover",
   "css",
@@ -89,6 +91,7 @@ function normalizeConfig(value: unknown, configDirectory: string): CliConfigDefa
   }
 
   return {
+    assetDirectory: getOptionalAssetDirectory(value.assetDir, "assetDir"),
     browserPath: getOptionalPath(value.browser, configDirectory, {
       allowBareCommand: true,
       fieldName: "browser"
@@ -122,6 +125,33 @@ function getOptionalString(value: unknown, fieldName: string): string | undefine
   }
 
   throw new CliUsageError(`Config field "${fieldName}" must be a string.`);
+}
+
+function getOptionalAssetDirectory(value: unknown, fieldName: string): string | undefined {
+  const directory = getOptionalString(value, fieldName)?.trim();
+
+  if (!directory) {
+    return undefined;
+  }
+
+  if (
+    directory.includes("?") ||
+    directory.includes("#") ||
+    /^[a-z][a-z0-9+.-]*:/iu.test(directory) ||
+    directory.startsWith("/") ||
+    directory.startsWith("\\")
+  ) {
+    throw new CliUsageError(`Config field "${fieldName}" must be a safe relative directory.`);
+  }
+
+  const normalizedDirectory = directory.replace(/\\/g, "/");
+  const parts = normalizedDirectory.split("/");
+
+  if (parts.includes("..") || parts.includes("")) {
+    throw new CliUsageError(`Config field "${fieldName}" must be a safe relative directory.`);
+  }
+
+  return normalizedDirectory;
 }
 
 function getOptionalPath(
