@@ -1,6 +1,12 @@
 import MarkdownIt from "markdown-it";
 import type Token from "markdown-it/lib/token.mjs";
 
+import {
+  createFootnoteEnvironment,
+  extractFootnotes,
+  registerFootnoteRules,
+  renderFootnotes
+} from "./footnotes.js";
 import { extractHeadings, type Heading } from "./headings.js";
 import { highlightCode } from "./highlight.js";
 import { parseMarkdownInput, type DocumentMetadata } from "./metadata.js";
@@ -13,7 +19,8 @@ export interface RenderedMarkdown {
 
 export function renderMarkdown(markdown: string): RenderedMarkdown {
   const parsedInput = parseMarkdownInput(markdown);
-  const headings = extractHeadings(parsedInput.content).map((heading) => ({
+  const parsedFootnotes = extractFootnotes(parsedInput.content);
+  const headings = extractHeadings(parsedFootnotes.content).map((heading) => ({
     ...heading,
     line: heading.line + parsedInput.contentLineOffset
   }));
@@ -26,6 +33,8 @@ export function renderMarkdown(markdown: string): RenderedMarkdown {
     linkify: false,
     typographer: false
   });
+
+  registerFootnoteRules(parser);
 
   const defaultHeadingOpenRule =
     parser.renderer.rules.heading_open ??
@@ -43,9 +52,20 @@ export function renderMarkdown(markdown: string): RenderedMarkdown {
     return defaultHeadingOpenRule(tokens, index, options, environment, renderer);
   };
 
+  const footnoteEnvironment = createFootnoteEnvironment(parsedFootnotes.definitions);
+  const renderedHtml = parser.render(parsedFootnotes.content, footnoteEnvironment).trimEnd();
+  const footnotesHtml = renderFootnotes(footnoteEnvironment, (definition) =>
+    parser
+      .render(definition, {
+        ...footnoteEnvironment,
+        disableFootnotes: true
+      })
+      .trimEnd()
+  );
+
   return {
     headings,
-    html: parser.render(parsedInput.content).trimEnd(),
+    html: [renderedHtml, footnotesHtml].filter(Boolean).join("\n"),
     metadata: parsedInput.metadata
   };
 }

@@ -43,6 +43,25 @@ describe("runCli", () => {
     expect(html).toContain('<h2 id="summary">Summary</h2>');
   });
 
+  it("renders footnotes in generated HTML output", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "brief.html");
+
+    await writeFile(inputPath, "# Brief\n\nContext[^note].\n\n[^note]: Footnote content.", "utf8");
+
+    const exitCode = await runCli(["brief.md"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: createBufferedOutput()
+    });
+
+    const html = await readFile(outputPath, "utf8");
+
+    expect(exitCode).toBe(0);
+    expect(html).toContain('<section class="footnotes" aria-label="Footnotes">');
+    expect(html).toContain("Footnote content.");
+  });
+
   it("appends a custom CSS file when one is provided", async () => {
     const inputPath = path.join(temporaryDirectory, "brief.md");
     const cssPath = path.join(temporaryDirectory, "print.css");
