@@ -38,6 +38,39 @@ body {
   margin: -0.25rem 0 2rem;
 }
 
+.cover-page {
+  align-items: center;
+  border-bottom: 1px solid #d7dce3;
+  display: flex;
+  min-height: calc(100vh - 8rem);
+  padding-bottom: 3rem;
+}
+
+.cover-page-content {
+  max-width: 680px;
+}
+
+.cover-page-title {
+  font-size: 3rem;
+  line-height: 1.05;
+  margin: 0;
+}
+
+.cover-page-subtitle {
+  color: #475569;
+  font-size: 1.35rem;
+  line-height: 1.35;
+  margin: 1rem 0 0;
+}
+
+.cover-page-meta {
+  color: #64748b;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 2rem 0 0;
+}
+
 .toc {
   border: 1px solid #d7dce3;
   margin: 0 0 2.5rem;
@@ -198,6 +231,13 @@ body {
     max-width: none;
     min-height: auto;
     padding: 0;
+  }
+
+  .cover-page {
+    border-bottom: 0;
+    break-after: page;
+    min-height: 100vh;
+    padding-bottom: 0;
   }
 
   .toc,

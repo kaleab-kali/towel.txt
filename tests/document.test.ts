@@ -37,6 +37,44 @@ date: 2026-05-27
     );
   });
 
+  it("renders an optional cover page from front matter", () => {
+    const html = renderDocument(`---
+title: Cover Title
+subtitle: Strategy Notes
+author: Kaleab
+date: 2026-05-29
+cover: true
+---
+# Body Title
+
+Content.`);
+
+    expect(html).toContain('<section class="cover-page" aria-label="Cover page">');
+    expect(html).toContain('<h1 class="cover-page-title">Cover Title</h1>');
+    expect(html).toContain('<p class="cover-page-subtitle">Strategy Notes</p>');
+    expect(html).toContain(
+      '<p class="cover-page-meta"><span>Kaleab</span> <span>2026-05-29</span></p>'
+    );
+    expect(html).not.toContain('class="document-title"');
+    expect(html).toContain('<h1 id="body-title">Body Title</h1>');
+  });
+
+  it("can disable a metadata cover page", () => {
+    const html = renderDocument(
+      `---
+title: Cover Title
+cover: true
+---
+# Body Title`,
+      {
+        cover: false
+      }
+    );
+
+    expect(html).not.toContain('class="cover-page"');
+    expect(html).toContain('<h1 class="document-title">Cover Title</h1>');
+  });
+
   it("escapes the document title", () => {
     const html = renderDocument("", { title: "Research & <Notes>" });
 

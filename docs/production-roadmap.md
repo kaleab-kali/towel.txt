@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `feat/document-cover-page`
+### `feat/page-break-controls`
 
-Add an optional cover page from document metadata.
+Support explicit page breaks and print break helpers.
 
 ## Completed Features
 
@@ -45,30 +45,30 @@ Add an optional cover page from document metadata.
    - Enable Markdown footnotes.
    - Add print-friendly footnote styling.
 
-## Feature Backlog
-
-1. `feat/document-cover-page`
+9. `feat/document-cover-page`
    - Add an optional cover page from metadata.
    - Support title, subtitle, author, and date.
 
-2. `feat/page-break-controls`
+## Feature Backlog
+
+1. `feat/page-break-controls`
    - Support explicit page breaks.
    - Add CSS helpers for avoiding awkward breaks.
 
-3. `feat/image-validation`
+2. `feat/image-validation`
    - Improve image diagnostics.
    - Report copied, skipped, and missing images clearly.
 
-4. `feat/asset-output-directory`
+3. `feat/asset-output-directory`
    - Allow copied assets to be placed under a configured folder.
 
-5. `feat/html-minify-option`
+4. `feat/html-minify-option`
    - Add optional minified HTML output.
 
-6. `feat/json-summary-output`
+5. `feat/json-summary-output`
    - Emit a machine-readable summary for CI and scripts.
 
-7. `feat/strict-mode`
+6. `feat/strict-mode`
    - Fail on missing images, invalid metadata, or warnings.
 
 ## Production Hardening

@@ -7,16 +7,20 @@ describe("parseMarkdownInput", () => {
     expect(
       parseMarkdownInput(`---
 title: Project Brief
+subtitle: Quarterly plan
 author: Kaleab
+cover: true
 date: 2026-05-27
 ---
 # Heading`)
     ).toEqual({
       content: "# Heading",
-      contentLineOffset: 5,
+      contentLineOffset: 7,
       metadata: {
         author: "Kaleab",
+        cover: true,
         date: "2026-05-27",
+        subtitle: "Quarterly plan",
         title: "Project Brief"
       }
     });

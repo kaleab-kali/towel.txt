@@ -62,6 +62,39 @@ describe("runCli", () => {
     expect(html).toContain("Footnote content.");
   });
 
+  it("renders a cover page from front matter metadata", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "brief.html");
+
+    await writeFile(
+      inputPath,
+      [
+        "---",
+        "title: Cover Brief",
+        "subtitle: Launch notes",
+        "author: Kaleab",
+        "cover: true",
+        "---",
+        "# Body",
+        "",
+        "Ready."
+      ].join("\n"),
+      "utf8"
+    );
+
+    const exitCode = await runCli(["brief.md"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: createBufferedOutput()
+    });
+
+    const html = await readFile(outputPath, "utf8");
+
+    expect(exitCode).toBe(0);
+    expect(html).toContain('<section class="cover-page" aria-label="Cover page">');
+    expect(html).toContain('<p class="cover-page-subtitle">Launch notes</p>');
+  });
+
   it("appends a custom CSS file when one is provided", async () => {
     const inputPath = path.join(temporaryDirectory, "brief.md");
     const cssPath = path.join(temporaryDirectory, "print.css");
@@ -481,6 +514,8 @@ describe("runCli", () => {
       [
         "output: dist/configured.html",
         "title: Configured Brief",
+        "subtitle: Configured Subtitle",
+        "cover: true",
         "css: print.css",
         "theme: report",
         "pageSize: A4",
@@ -500,6 +535,8 @@ describe("runCli", () => {
 
     expect(exitCode).toBe(0);
     expect(html).toContain("<title>Configured Brief</title>");
+    expect(html).toContain('<section class="cover-page" aria-label="Cover page">');
+    expect(html).toContain('<p class="cover-page-subtitle">Configured Subtitle</p>');
     expect(html).toContain("/* theme: report */");
     expect(html).toContain(".document { max-width: 640px; }");
     expect(html).toContain("size: A4;");
@@ -517,6 +554,7 @@ describe("runCli", () => {
       [
         "output: config.html",
         "title: Config Title",
+        "cover: true",
         "theme: report",
         "tableOfContents: false"
       ].join("\n"),
@@ -524,7 +562,17 @@ describe("runCli", () => {
     );
 
     const exitCode = await runCli(
-      ["brief.md", "--output", "cli.html", "--title", "CLI Title", "--theme", "compact", "--toc"],
+      [
+        "brief.md",
+        "--output",
+        "cli.html",
+        "--title",
+        "CLI Title",
+        "--theme",
+        "compact",
+        "--toc",
+        "--no-cover"
+      ],
       {
         cwd: temporaryDirectory,
         stderr: createBufferedOutput(),
@@ -536,6 +584,7 @@ describe("runCli", () => {
 
     expect(exitCode).toBe(0);
     expect(html).toContain("<title>CLI Title</title>");
+    expect(html).not.toContain('class="cover-page"');
     expect(html).toContain("/* theme: compact */");
     expect(html).toContain('class="toc"');
     await expect(readFile(path.join(temporaryDirectory, "config.html"), "utf8")).rejects.toThrow();

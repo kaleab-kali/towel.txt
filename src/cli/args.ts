@@ -9,6 +9,8 @@ export type CliCommand =
   | {
       browserPath?: string;
       configPath?: string;
+      cover: boolean;
+      coverSpecified: boolean;
       cssPath?: string;
       force: boolean;
       format?: OutputFormat;
@@ -20,6 +22,7 @@ export type CliCommand =
       pageSize?: string;
       stdout: boolean;
       stdin: boolean;
+      subtitle?: string;
       tableOfContents: boolean;
       tableOfContentsSpecified: boolean;
       theme?: ThemeName;
@@ -48,6 +51,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
         },
         config: {
           type: "string"
+        },
+        cover: {
+          type: "boolean"
         },
         help: {
           short: "h",
@@ -78,11 +84,17 @@ export function parseCliArgs(argv: string[]): CliCommand {
         "no-config": {
           type: "boolean"
         },
+        "no-cover": {
+          type: "boolean"
+        },
         stdout: {
           type: "boolean"
         },
         stdin: {
           type: "boolean"
+        },
+        subtitle: {
+          type: "string"
         },
         title: {
           type: "string"
@@ -118,6 +130,10 @@ export function parseCliArgs(argv: string[]): CliCommand {
     throw new CliUsageError("Do not pass --toc with --no-toc.");
   }
 
+  if (parsed.values.cover === true && parsed.values["no-cover"] === true) {
+    throw new CliUsageError("Do not pass --cover with --no-cover.");
+  }
+
   if (parsed.values.stdin === true && parsed.positionals.length > 0) {
     throw new CliUsageError("Do not pass an input file when using --stdin.");
   }
@@ -129,6 +145,8 @@ export function parseCliArgs(argv: string[]): CliCommand {
   return {
     browserPath: getStringOption(parsed.values.browser),
     configPath: getStringOption(parsed.values.config),
+    cover: parsed.values.cover === true && parsed.values["no-cover"] !== true,
+    coverSpecified: parsed.values.cover === true || parsed.values["no-cover"] === true,
     cssPath: getStringOption(parsed.values.css),
     force: parsed.values.force === true,
     format: getOutputFormatOption(parsed.values.format),
@@ -140,6 +158,7 @@ export function parseCliArgs(argv: string[]): CliCommand {
     pageSize: getStringOption(parsed.values["page-size"]),
     stdin: parsed.values.stdin === true,
     stdout: parsed.values.stdout === true,
+    subtitle: getStringOption(parsed.values.subtitle),
     tableOfContents: parsed.values["no-toc"] !== true,
     tableOfContentsSpecified: parsed.values["no-toc"] === true || parsed.values.toc === true,
     theme: getThemeOption(parsed.values.theme),

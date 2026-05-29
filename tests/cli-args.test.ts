@@ -16,6 +16,9 @@ describe("parseCliArgs", () => {
         "Doc",
         "--css",
         "theme.css",
+        "--cover",
+        "--subtitle",
+        "Subtitle",
         "--page-size",
         "A4 landscape",
         "--margin",
@@ -26,6 +29,8 @@ describe("parseCliArgs", () => {
       ])
     ).toEqual({
       cssPath: "theme.css",
+      cover: true,
+      coverSpecified: true,
       force: true,
       inputPath: "doc.md",
       kind: "render",
@@ -35,6 +40,7 @@ describe("parseCliArgs", () => {
       pageSize: "A4 landscape",
       stdin: false,
       stdout: true,
+      subtitle: "Subtitle",
       tableOfContents: false,
       tableOfContentsSpecified: true,
       title: "Doc",
@@ -48,6 +54,8 @@ describe("parseCliArgs", () => {
       inputPath: "doc.md",
       kind: "render",
       noConfig: false,
+      cover: false,
+      coverSpecified: false,
       stdin: false,
       stdout: false,
       tableOfContents: true,
@@ -61,6 +69,8 @@ describe("parseCliArgs", () => {
       force: false,
       kind: "render",
       noConfig: false,
+      cover: false,
+      coverSpecified: false,
       stdin: true,
       stdout: true,
       tableOfContents: true,
@@ -73,6 +83,8 @@ describe("parseCliArgs", () => {
   it("parses PDF output options", () => {
     expect(parseCliArgs(["doc.md", "--format", "pdf", "--browser", "chrome"])).toEqual({
       browserPath: "chrome",
+      cover: false,
+      coverSpecified: false,
       force: false,
       format: "pdf",
       inputPath: "doc.md",
@@ -89,6 +101,8 @@ describe("parseCliArgs", () => {
   it("parses config options", () => {
     expect(parseCliArgs(["doc.md", "--config", "towel-txt.config.yaml", "--no-config"])).toEqual({
       configPath: "towel-txt.config.yaml",
+      cover: false,
+      coverSpecified: false,
       force: false,
       inputPath: "doc.md",
       kind: "render",
@@ -107,6 +121,8 @@ describe("parseCliArgs", () => {
       inputPath: "doc.md",
       kind: "render",
       noConfig: false,
+      cover: false,
+      coverSpecified: false,
       stdin: false,
       stdout: false,
       tableOfContents: true,
@@ -119,6 +135,13 @@ describe("parseCliArgs", () => {
     expect(parseCliArgs(["doc.md", "--toc"])).toMatchObject({
       tableOfContents: true,
       tableOfContentsSpecified: true
+    });
+  });
+
+  it("parses an explicit cover page disablement", () => {
+    expect(parseCliArgs(["doc.md", "--no-cover"])).toMatchObject({
+      cover: false,
+      coverSpecified: true
     });
   });
 
@@ -138,6 +161,10 @@ describe("parseCliArgs", () => {
 
   it("fails when table of contents flags conflict", () => {
     expect(() => parseCliArgs(["doc.md", "--toc", "--no-toc"])).toThrow(CliUsageError);
+  });
+
+  it("fails when cover page flags conflict", () => {
+    expect(() => parseCliArgs(["doc.md", "--cover", "--no-cover"])).toThrow(CliUsageError);
   });
 
   it("fails when stdin mode is combined with an input file", () => {
