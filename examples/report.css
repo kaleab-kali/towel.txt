@@ -1,0 +1,22 @@
+.document {
+  max-width: 820px;
+}
+
+.document-title {
+  color: #14532d;
+}
+
+.document-subtitle,
+.document-meta {
+  color: #475569;
+}
+
+.document-body table {
+  font-size: 0.95rem;
+}
+
+@media print {
+  .document {
+    max-width: none;
+  }
+}

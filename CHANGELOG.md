@@ -30,6 +30,7 @@ Versioning after the first public release.
 - Output overwrite protection with `--force`.
 - Package smoke testing for packed CLI installs.
 - PDF export through a local Chrome, Edge, or Chromium browser.
+- Production examples for reports, briefs, technical notes, images, and custom CSS.
 - Print page size and margin options for generated HTML documents.
 - Printable HTML document rendering with default screen and print styles.
 - Project config files with `--config` and `--no-config`.
