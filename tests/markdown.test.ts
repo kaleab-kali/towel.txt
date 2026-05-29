@@ -98,6 +98,31 @@ const answer = 42;
     expect(result.html).not.toContain("[^note]:");
   });
 
+  it("renders explicit page break markers", () => {
+    const result = renderMarkdown(`Before.
+
+[[page-break]]
+
+After.
+
+\\newpage
+
+Done.`);
+
+    expect(result.html).toContain("<p>Before.</p>");
+    expect(result.html).toContain('<div class="page-break" aria-hidden="true"></div>');
+    expect(result.html.match(/class="page-break"/g)).toHaveLength(2);
+  });
+
+  it("keeps page break markers inside code fences as code", () => {
+    const result = renderMarkdown(`\`\`\`md
+[[page-break]]
+\`\`\``);
+
+    expect(result.html).toContain("[[page-break]]");
+    expect(result.html).not.toContain('class="page-break"');
+  });
+
   it("does not render raw HTML from Markdown input", () => {
     expect(renderMarkdown("<script>alert('xss')</script>").html).toContain(
       "&lt;script&gt;alert('xss')&lt;/script&gt;"

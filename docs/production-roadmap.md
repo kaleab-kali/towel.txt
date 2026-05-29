@@ -5,9 +5,9 @@ open-source CLI.
 
 ## Next Feature
 
-### `feat/page-break-controls`
+### `feat/image-validation`
 
-Support explicit page breaks and print break helpers.
+Improve local image diagnostics.
 
 ## Completed Features
 
@@ -49,26 +49,27 @@ Support explicit page breaks and print break helpers.
    - Add an optional cover page from metadata.
    - Support title, subtitle, author, and date.
 
+10. `feat/page-break-controls`
+
+- Support explicit page breaks.
+- Add CSS helpers for avoiding awkward breaks.
+
 ## Feature Backlog
 
-1. `feat/page-break-controls`
-   - Support explicit page breaks.
-   - Add CSS helpers for avoiding awkward breaks.
-
-2. `feat/image-validation`
+1. `feat/image-validation`
    - Improve image diagnostics.
    - Report copied, skipped, and missing images clearly.
 
-3. `feat/asset-output-directory`
+2. `feat/asset-output-directory`
    - Allow copied assets to be placed under a configured folder.
 
-4. `feat/html-minify-option`
+3. `feat/html-minify-option`
    - Add optional minified HTML output.
 
-5. `feat/json-summary-output`
+4. `feat/json-summary-output`
    - Emit a machine-readable summary for CI and scripts.
 
-6. `feat/strict-mode`
+5. `feat/strict-mode`
    - Fail on missing images, invalid metadata, or warnings.
 
 ## Production Hardening

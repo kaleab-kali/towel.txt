@@ -179,6 +179,27 @@ body {
   background: #f8fafc;
 }
 
+.page-break {
+  border-top: 1px dashed #94a3b8;
+  height: 0;
+  margin: 2rem 0;
+}
+
+.break-before-page {
+  break-before: page;
+  page-break-before: always;
+}
+
+.break-after-page {
+  break-after: page;
+  page-break-after: always;
+}
+
+.avoid-page-break {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
 .footnotes {
   border-top: 1px solid #d7dce3;
   color: #475569;
@@ -244,8 +265,17 @@ body {
   .content blockquote,
   .content pre,
   .content table,
+  .avoid-page-break,
   .footnotes li {
     break-inside: avoid;
+  }
+
+  .page-break {
+    border: 0;
+    break-after: page;
+    height: 0;
+    margin: 0;
+    page-break-after: always;
   }
 
   .content h1,

@@ -95,6 +95,24 @@ describe("runCli", () => {
     expect(html).toContain('<p class="cover-page-subtitle">Launch notes</p>');
   });
 
+  it("renders page break markers in generated HTML output", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "brief.html");
+
+    await writeFile(inputPath, "# Brief\n\nBefore.\n\n[[page-break]]\n\nAfter.", "utf8");
+
+    const exitCode = await runCli(["brief.md"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: createBufferedOutput()
+    });
+
+    const html = await readFile(outputPath, "utf8");
+
+    expect(exitCode).toBe(0);
+    expect(html).toContain('<div class="page-break" aria-hidden="true"></div>');
+  });
+
   it("appends a custom CSS file when one is provided", async () => {
     const inputPath = path.join(temporaryDirectory, "brief.md");
     const cssPath = path.join(temporaryDirectory, "print.css");
