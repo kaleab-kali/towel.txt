@@ -35,7 +35,9 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "prepack": "pnpm build",
+    "perf:smoke": "node scripts/performance-smoke.mjs",
     "release:check": "node scripts/release-check.mjs",
+    "security:audit": "pnpm audit --audit-level high",
     "smoke:package": "node scripts/package-smoke.mjs",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"

@@ -310,9 +310,11 @@ This repository uses Node.js, TypeScript, and pnpm.
 pnpm install
 pnpm release:check
 pnpm lint
+pnpm security:audit
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm perf:smoke
 pnpm smoke:package
 ```
 

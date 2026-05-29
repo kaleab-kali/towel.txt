@@ -112,6 +112,16 @@ function checkPackageMetadata(manifest) {
     "package.json publishConfig.access must be public."
   );
   expectEqual(manifest.scripts?.prepack, "pnpm build", "package.json prepack must build dist.");
+  expectEqual(
+    manifest.scripts?.["perf:smoke"],
+    "node scripts/performance-smoke.mjs",
+    "package.json perf:smoke must run the performance smoke script."
+  );
+  expectEqual(
+    manifest.scripts?.["security:audit"],
+    "pnpm audit --audit-level high",
+    "package.json security:audit must run a high-severity dependency audit."
+  );
   expect(
     typeof manifest.packageManager === "string" && manifest.packageManager.startsWith("pnpm@"),
     "package.json packageManager must pin pnpm."

@@ -6,9 +6,19 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 20
+          - 22
 
     steps:
       - name: Checkout
@@ -22,11 +32,15 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node-version }}
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Security audit
+        if: ${{ matrix.node-version == 22 }}
+        run: pnpm security:audit
 
       - name: Release checks
         run: pnpm release:check
@@ -45,6 +59,9 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Performance smoke test
+        run: pnpm perf:smoke
 
       - name: Package smoke test
         run: pnpm smoke:package
