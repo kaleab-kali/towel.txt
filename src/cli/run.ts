@@ -1,5 +1,5 @@
 import { constants } from "node:fs";
-import { access, mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
 
@@ -12,6 +12,7 @@ import { CliUsageError, type CliCommand, type OutputFormat, parseCliArgs } from 
 import { copyLocalImageAssets, type ImageAssetCopyResult } from "./assets.js";
 import { type CliConfigDefaults, loadCliConfig } from "./config.js";
 import { type PdfPrintOptions, printHtmlToPdf } from "./pdf.js";
+import { getImageAssetWarning, getImageAssetWarnings, writeRenderSummary } from "./summary.js";
 import { type WatchFilesOptions, watchFiles } from "./watch.js";
 
 export interface CliIo {
@@ -70,6 +71,9 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
           io.cwd,
           command.outputPath ?? getDefaultOutputPath(command.inputPath ?? "", outputFormat)
         );
+    const summaryJsonPath = command.summaryJsonPath
+      ? path.resolve(io.cwd, command.summaryJsonPath)
+      : undefined;
 
     await renderCommand({
       allowOverwrite: false,
@@ -77,7 +81,8 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
       inputPath,
       io,
       outputFormat,
-      outputPath
+      outputPath,
+      summaryJsonPath
     });
 
     if (command.watch) {
@@ -98,7 +103,8 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
               inputPath,
               io,
               outputFormat,
-              outputPath
+              outputPath,
+              summaryJsonPath
             });
           } catch (error) {
             writeCliError(io, error);
@@ -139,6 +145,7 @@ function applyConfigDefaults(
     outputPath: command.outputPath ?? defaults.outputPath,
     pageSize: command.pageSize ?? defaults.pageSize,
     subtitle: command.subtitle ?? defaults.subtitle,
+    summaryJsonPath: command.summaryJsonPath ?? defaults.summaryJsonPath,
     tableOfContents: command.tableOfContentsSpecified
       ? command.tableOfContents
       : (defaults.tableOfContents ?? command.tableOfContents),
@@ -153,7 +160,8 @@ async function renderCommand({
   inputPath,
   io,
   outputFormat,
-  outputPath
+  outputPath,
+  summaryJsonPath
 }: {
   allowOverwrite: boolean;
   command: RenderCommand;
@@ -161,12 +169,24 @@ async function renderCommand({
   io: CliIo;
   outputFormat: OutputFormat;
   outputPath: string | undefined;
+  summaryJsonPath: string | undefined;
 }): Promise<void> {
+  const force = allowOverwrite || command.force;
+
   if (!command.stdout) {
     await assertCanWriteOutput({
-      force: allowOverwrite || command.force,
+      force,
       inputPath,
       outputPath: requiredOutputPath(outputPath)
+    });
+  }
+
+  if (summaryJsonPath) {
+    await assertCanWriteSummaryJson({
+      force,
+      inputPath,
+      outputPath,
+      summaryJsonPath
     });
   }
 
@@ -202,28 +222,47 @@ async function renderCommand({
     title: command.title
   });
   const outputHtml = command.minify ? minifyHtml(html) : html;
+  let bytesWritten: number;
 
   if (command.stdout) {
     io.stdout.write(outputHtml);
-    return;
-  }
-
-  await mkdir(path.dirname(requiredOutputPath(outputPath)), { recursive: true });
-
-  if (outputFormat === "pdf") {
-    await (io.pdfPrinter ?? printHtmlToPdf)({
-      basePath: inputPath ? path.dirname(inputPath) : undefined,
-      browserPath: resolveOptionalPath(io.cwd, command.browserPath),
-      html,
-      outputPath: requiredOutputPath(outputPath)
-    });
+    bytesWritten = Buffer.byteLength(outputHtml, "utf8");
   } else {
-    await writeFile(requiredOutputPath(outputPath), outputHtml, "utf8");
+    await mkdir(path.dirname(requiredOutputPath(outputPath)), { recursive: true });
 
-    writeImageAssetDiagnostics(io, imageAssets);
+    if (outputFormat === "pdf") {
+      await (io.pdfPrinter ?? printHtmlToPdf)({
+        basePath: inputPath ? path.dirname(inputPath) : undefined,
+        browserPath: resolveOptionalPath(io.cwd, command.browserPath),
+        html,
+        outputPath: requiredOutputPath(outputPath)
+      });
+      bytesWritten = await getFileSize(requiredOutputPath(outputPath));
+    } else {
+      await writeFile(requiredOutputPath(outputPath), outputHtml, "utf8");
+      bytesWritten = Buffer.byteLength(outputHtml, "utf8");
+
+      writeImageAssetDiagnostics(io, imageAssets);
+    }
   }
 
-  io.stdout.write(`Wrote ${displayPath(io.cwd, requiredOutputPath(outputPath))}\n`);
+  if (summaryJsonPath) {
+    await writeRenderSummary(summaryJsonPath, {
+      assetDirectory: command.assetDirectory ?? null,
+      bytesWritten,
+      format: outputFormat,
+      images: imageAssets,
+      inputPath: inputPath ?? null,
+      minified: command.stdout || outputFormat === "html" ? command.minify : false,
+      outputPath: outputPath ?? null,
+      stdout: command.stdout,
+      warnings: getImageAssetWarnings(imageAssets)
+    });
+  }
+
+  if (!command.stdout) {
+    io.stdout.write(`Wrote ${displayPath(io.cwd, requiredOutputPath(outputPath))}\n`);
+  }
 }
 
 export function getHelpText(): string {
@@ -254,6 +293,7 @@ Options:
       --stdin          Read Markdown input from stdin instead of a file.
       --stdout         Write generated HTML to stdout instead of a file.
       --subtitle <txt> Override the document subtitle.
+      --summary-json <path> Write a machine-readable render summary JSON file.
       --theme <name>   Document theme: "default", "compact", or "report".
       --title <title>  Override the document title.
       --toc            Enable table of contents when config disables it.
@@ -326,21 +366,16 @@ function writeImageAssetDiagnostics(io: CliIo, imageAssets: ImageAssetCopyResult
       return;
     }
 
-    if (asset.status === "missing") {
-      io.stderr.write(`Warning: image asset "${asset.source}" is missing: ${asset.error}\n`);
-      return;
-    }
-
     if (asset.reason === "already in output directory") {
       io.stdout.write(`Skipped image asset: ${asset.source} (${asset.reason})\n`);
       return;
     }
 
-    io.stderr.write(
-      `Warning: image asset "${asset.source}" was skipped: ${
-        asset.reason ?? "unsupported image source"
-      }\n`
-    );
+    const warning = getImageAssetWarning(asset);
+
+    if (warning) {
+      io.stderr.write(`${warning}\n`);
+    }
   });
 }
 
@@ -384,6 +419,30 @@ function resolveOptionalPath(cwd: string, value: string | undefined): string | u
   return value;
 }
 
+async function assertCanWriteSummaryJson({
+  force,
+  inputPath,
+  outputPath,
+  summaryJsonPath
+}: {
+  force: boolean;
+  inputPath: string | undefined;
+  outputPath: string | undefined;
+  summaryJsonPath: string;
+}): Promise<void> {
+  if (inputPath && pathsAreEqual(inputPath, summaryJsonPath)) {
+    throw new CliUsageError("Summary JSON path cannot replace the input Markdown file.");
+  }
+
+  if (outputPath && pathsAreEqual(outputPath, summaryJsonPath)) {
+    throw new CliUsageError("Summary JSON path cannot replace the generated output file.");
+  }
+
+  if (!force && (await fileExists(summaryJsonPath))) {
+    throw new CliUsageError("Summary JSON file already exists. Use --force to overwrite.");
+  }
+}
+
 async function assertCanWriteOutput({
   force,
   inputPath,
@@ -400,6 +459,10 @@ async function assertCanWriteOutput({
   if (!force && (await fileExists(outputPath))) {
     throw new CliUsageError("Output file already exists. Use --force to overwrite.");
   }
+}
+
+async function getFileSize(filePath: string): Promise<number> {
+  return (await stat(filePath)).size;
 }
 
 async function fileExists(filePath: string): Promise<boolean> {

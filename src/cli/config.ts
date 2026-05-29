@@ -17,6 +17,7 @@ export interface CliConfigDefaults {
   outputPath?: string;
   pageSize?: string;
   subtitle?: string;
+  summaryJsonPath?: string;
   tableOfContents?: boolean;
   theme?: ThemeName;
   title?: string;
@@ -43,6 +44,7 @@ const supportedFields = new Set([
   "output",
   "pageSize",
   "subtitle",
+  "summaryJson",
   "tableOfContents",
   "theme",
   "title"
@@ -112,6 +114,10 @@ function normalizeConfig(value: unknown, configDirectory: string): CliConfigDefa
     }),
     pageSize: getOptionalString(value.pageSize, "pageSize"),
     subtitle: getOptionalString(value.subtitle, "subtitle"),
+    summaryJsonPath: getOptionalPath(value.summaryJson, configDirectory, {
+      allowBareCommand: false,
+      fieldName: "summaryJson"
+    }),
     tableOfContents: getOptionalBoolean(value.tableOfContents, "tableOfContents"),
     theme: getOptionalTheme(value.theme),
     title: getOptionalString(value.title, "title")

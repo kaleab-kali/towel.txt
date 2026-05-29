@@ -62,6 +62,90 @@ describe("runCli", () => {
     expect(html).toContain("Footnote content.");
   });
 
+  it("writes a machine-readable render summary when requested", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const outputPath = path.join(temporaryDirectory, "out", "brief.html");
+    const summaryPath = path.join(temporaryDirectory, "out", "summary.json");
+
+    await writeFile(inputPath, "# Brief\n\n![Missing](images/missing.png)", "utf8");
+
+    const exitCode = await runCli(
+      ["brief.md", "--output", "out/brief.html", "--summary-json", "out/summary.json"],
+      {
+        cwd: temporaryDirectory,
+        stderr: createBufferedOutput(),
+        stdout: createBufferedOutput()
+      }
+    );
+
+    const html = await readFile(outputPath, "utf8");
+    const summary = JSON.parse(await readFile(summaryPath, "utf8")) as Record<string, unknown>;
+
+    expect(exitCode).toBe(0);
+    expect(summary).toMatchObject({
+      assetDirectory: null,
+      bytesWritten: Buffer.byteLength(html, "utf8"),
+      format: "html",
+      inputPath,
+      minified: false,
+      outputPath,
+      stdout: false,
+      warnings: expect.arrayContaining([
+        expect.stringContaining('Warning: image asset "images/missing.png" is missing:')
+      ])
+    });
+    expect(summary.images).toEqual([
+      expect.objectContaining({
+        source: "images/missing.png",
+        status: "missing",
+        targetSource: "images/missing.png"
+      })
+    ]);
+  });
+
+  it("writes a summary beside stdout output", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const summaryPath = path.join(temporaryDirectory, "summary.json");
+    const output = createBufferedOutput();
+
+    await writeFile(inputPath, "# Brief", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--stdout", "--summary-json", "summary.json"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: output
+    });
+
+    const summary = JSON.parse(await readFile(summaryPath, "utf8")) as Record<string, unknown>;
+
+    expect(exitCode).toBe(0);
+    expect(output.value).toContain("<title>Brief</title>");
+    expect(summary).toMatchObject({
+      bytesWritten: Buffer.byteLength(output.value, "utf8"),
+      format: "html",
+      inputPath,
+      outputPath: null,
+      stdout: true
+    });
+  });
+
+  it("refuses to overwrite an existing summary file without --force", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const errors = createBufferedOutput();
+
+    await writeFile(inputPath, "# Brief", "utf8");
+    await writeFile(path.join(temporaryDirectory, "summary.json"), "{}", "utf8");
+
+    const exitCode = await runCli(["brief.md", "--summary-json", "summary.json"], {
+      cwd: temporaryDirectory,
+      stderr: errors,
+      stdout: createBufferedOutput()
+    });
+
+    expect(exitCode).toBe(1);
+    expect(errors.value).toContain("Summary JSON file already exists. Use --force to overwrite.");
+  });
+
   it("can write minified HTML output", async () => {
     const inputPath = path.join(temporaryDirectory, "brief.md");
     const outputPath = path.join(temporaryDirectory, "brief.html");
@@ -621,6 +705,7 @@ describe("runCli", () => {
         "pageSize: A4",
         "margin: 20mm",
         "minify: true",
+        "summaryJson: dist/configured-summary.json",
         "tableOfContents: false"
       ].join("\n"),
       "utf8"
@@ -633,6 +718,9 @@ describe("runCli", () => {
     });
 
     const html = await readFile(outputPath, "utf8");
+    const summary = JSON.parse(
+      await readFile(path.join(temporaryDirectory, "dist", "configured-summary.json"), "utf8")
+    ) as Record<string, unknown>;
 
     expect(exitCode).toBe(0);
     expect(html).toContain("<!doctype html><html");
@@ -646,6 +734,11 @@ describe("runCli", () => {
     expect(html).toContain("size: A4;");
     expect(html).toContain("margin: 20mm;");
     expect(html).not.toContain('class="toc"');
+    expect(summary).toMatchObject({
+      format: "html",
+      outputPath,
+      stdout: false
+    });
   });
 
   it("lets CLI flags override project config defaults", async () => {

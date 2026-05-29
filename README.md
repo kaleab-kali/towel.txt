@@ -58,6 +58,12 @@ Generate compact HTML with layout whitespace removed:
 towel-txt document.md -o document.html --minify
 ```
 
+Write a JSON summary for CI or scripts:
+
+```bash
+towel-txt document.md -o document.html --summary-json summary.json
+```
+
 Set print page size and margins:
 
 ```bash
@@ -168,6 +174,7 @@ The CLI supports:
 - Table of contents generation.
 - Optional table of contents suppression.
 - Project config files for shared defaults.
+- Render summary JSON files for CI and scripts.
 - Watch mode for rebuilding file output during local editing.
 - Stdout output for shell pipelines.
 - Stdin input for shell pipelines.
@@ -233,6 +240,7 @@ cover: true
 pageSize: A4
 margin: 18mm
 minify: false
+summaryJson: dist/summary.json
 tableOfContents: true
 ```
 
@@ -241,7 +249,14 @@ table of contents and one command needs it enabled.
 
 Supported config fields are `output`, `assetDir`, `css`, `format`, `theme`,
 `title`, `subtitle`, `cover`, `pageSize`, `margin`, `minify`,
-`tableOfContents`, and `browser`.
+`summaryJson`, `tableOfContents`, and `browser`.
+
+## JSON Summary
+
+Use `--summary-json <path>` to write a machine-readable summary file after a
+successful render. The summary includes the output format, absolute input and
+output paths, bytes written, minify status, copied image results, and warning
+messages.
 
 ## Example
 

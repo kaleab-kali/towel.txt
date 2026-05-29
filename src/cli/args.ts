@@ -26,6 +26,7 @@ export type CliCommand =
       stdout: boolean;
       stdin: boolean;
       subtitle?: string;
+      summaryJsonPath?: string;
       tableOfContents: boolean;
       tableOfContentsSpecified: boolean;
       theme?: ThemeName;
@@ -108,6 +109,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
         subtitle: {
           type: "string"
         },
+        "summary-json": {
+          type: "string"
+        },
         title: {
           type: "string"
         },
@@ -178,6 +182,7 @@ export function parseCliArgs(argv: string[]): CliCommand {
     stdin: parsed.values.stdin === true,
     stdout: parsed.values.stdout === true,
     subtitle: getStringOption(parsed.values.subtitle),
+    summaryJsonPath: getStringOption(parsed.values["summary-json"]),
     tableOfContents: parsed.values["no-toc"] !== true,
     tableOfContentsSpecified: parsed.values["no-toc"] === true || parsed.values.toc === true,
     theme: getThemeOption(parsed.values.theme),
