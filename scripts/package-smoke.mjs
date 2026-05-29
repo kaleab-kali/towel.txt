@@ -33,7 +33,7 @@ try {
     `${JSON.stringify({ private: true }, null, 2)}\n`,
     "utf8"
   );
-  await runPnpm(["add", "--offline", path.join(packDirectory, tarball)], smokeDirectory);
+  await installPackedPackage(path.join(packDirectory, tarball), smokeDirectory);
 
   const version = await runPnpm(["exec", "towel-txt", "--version"], smokeDirectory);
 
@@ -58,6 +58,24 @@ try {
 
 async function runPnpm(args, cwd) {
   return run(pnpmCommand, [...pnpmArgsPrefix, ...args], cwd);
+}
+
+async function installPackedPackage(tarballPath, cwd) {
+  try {
+    await runPnpm(["add", "--offline", tarballPath], cwd);
+  } catch (error) {
+    if (!isMissingOfflineMetadata(error)) {
+      throw error;
+    }
+
+    await runPnpm(["add", tarballPath], cwd);
+  }
+}
+
+function isMissingOfflineMetadata(error) {
+  const output = `${error.stdout ?? ""}\n${error.stderr ?? ""}`;
+
+  return output.includes("ERR_PNPM_NO_OFFLINE_META");
 }
 
 async function run(command, args, cwd) {
