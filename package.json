@@ -1,15 +1,32 @@
 {
   "name": "towel-txt",
   "version": "0.0.0",
-  "description": "Markdown to printable HTML document generator.",
+  "description": "Convert Markdown into printable HTML and PDF documents.",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "bin": {
     "towel-txt": "./dist/cli.js"
   },
   "files": [
-    "dist",
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md",
+    "docs/**/*.md",
+    "examples/**/*.md",
+    "examples/**/*.css",
+    "examples/**/*.svg",
+    "examples/**/*.yaml"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -17,6 +34,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
+    "prepack": "pnpm build",
     "release:check": "node scripts/release-check.mjs",
     "smoke:package": "node scripts/package-smoke.mjs",
     "test": "vitest run",
@@ -29,7 +47,7 @@
     "document",
     "cli"
   ],
-  "author": "",
+  "author": "Kaleab Kali",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -41,6 +59,9 @@
   "homepage": "https://github.com/kaleab-kali/towel.txt#readme",
   "engines": {
     "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "packageManager": "pnpm@10.12.1",
   "devDependencies": {

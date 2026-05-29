@@ -28,6 +28,7 @@ Versioning after the first public release.
 - Optional minified HTML output with `--minify` or config defaults.
 - Optional table of contents suppression with `--no-toc`.
 - Output overwrite protection with `--force`.
+- Package metadata, exports, and publishable file list readiness checks.
 - Package smoke testing for packed CLI installs.
 - PDF export through a local Chrome, Edge, or Chromium browser.
 - Production examples for reports, briefs, technical notes, images, and custom CSS.
