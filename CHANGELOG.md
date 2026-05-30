@@ -39,6 +39,7 @@ Versioning after the first public release.
 - Release checks for changelog, package metadata, and version consistency.
 - Release workflow for verified package dry-runs and optional publishing.
 - Security audit and performance smoke gates in CI and release verification.
+- Windows CI coverage for cross-platform CLI verification.
 - Print-friendly footnotes with backlinks.
 - Render summary JSON files for CI and script workflows.
 - Security and limits documentation for rendering, image copying, CSS, and PDF export.
