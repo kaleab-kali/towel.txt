@@ -13,6 +13,7 @@ const pnpmExecPath = process.env.npm_execpath;
 const pnpmRunsThroughNode = pnpmExecPath ? /\.(?:cjs|js|mjs)$/iu.test(pnpmExecPath) : false;
 const pnpmCommand = pnpmRunsThroughNode ? process.execPath : (pnpmExecPath ?? "pnpm");
 const pnpmArgsPrefix = pnpmRunsThroughNode && pnpmExecPath ? [pnpmExecPath] : [];
+const manifest = JSON.parse(await readFile(path.join(packageRoot, "package.json"), "utf8"));
 
 const temporaryDirectory = await mkdtemp(path.join(os.tmpdir(), "towel-txt-package-"));
 
@@ -41,8 +42,9 @@ try {
   await installPackedPackage(tarballPath, smokeDirectory);
 
   const version = await runPnpm(["exec", "towel-txt", "--version"], smokeDirectory);
+  const expectedVersion = `towel-txt ${manifest.version}`;
 
-  if (!version.stdout.includes("towel-txt 0.0.0")) {
+  if (version.stdout.trim() !== expectedVersion) {
     throw new Error(`Package smoke failed: unexpected version output: ${version.stdout}`);
   }
 

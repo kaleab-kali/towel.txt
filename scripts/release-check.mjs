@@ -159,7 +159,7 @@ function checkChangelog(changelogText) {
 
   expect(unreleased !== undefined, "CHANGELOG.md must include an Unreleased section.");
 
-  if (unreleased !== undefined) {
+  if (unreleased !== undefined && unreleased.trim().length > 0) {
     expect(
       /^### (Added|Changed|Deprecated|Removed|Fixed|Security)$/mu.test(unreleased),
       "CHANGELOG.md Unreleased must include a Keep a Changelog category."

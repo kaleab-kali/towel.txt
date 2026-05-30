@@ -1,7 +1,7 @@
 # Release Process
 
-Towel.txt is not published yet. Use this process once the Printable HTML MVP is
-ready for release.
+Towel.txt release metadata is prepared for the first public `0.1.0` package.
+Publishing still requires maintainer npm credentials.
 
 1. Confirm `pnpm release:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test`,
    `pnpm build`, `pnpm perf:smoke`, `pnpm security:audit`, and
@@ -25,5 +25,6 @@ The `Release` workflow can run the release gate from GitHub Actions.
 5. Enable `publish` only when the release should publish to npm and create a
    GitHub release.
 
-Publishing requires npm credentials through `NPM_TOKEN` or an equivalent trusted
-publishing setup for this repository.
+Publishing uses npm provenance from GitHub Actions and requires npm credentials
+through `NPM_TOKEN` or an equivalent trusted publishing setup for this
+repository.
