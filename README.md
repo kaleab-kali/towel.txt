@@ -11,7 +11,8 @@ output.
 
 Towel.txt can currently generate self-contained printable HTML and PDF files
 from Markdown. PDF export uses a local Chrome, Edge, or Chromium browser.
-Package publishing is planned after the core document workflow is stable.
+The first public package release is prepared as `0.1.0`; publishing requires
+the maintainer release workflow and npm credentials.
 
 ## Goals
 

@@ -118,6 +118,11 @@ hardening.
     - Open grouped Dependabot pull requests for npm dependencies.
     - Open grouped Dependabot pull requests for GitHub Actions.
 
+15. `chore/prepare-first-release`
+    - Prepare package and source metadata for the `0.1.0` public release.
+    - Move completed changelog entries into a dated release section.
+    - Keep the release check compatible with an empty Unreleased section.
+
 ## Production Hardening
 
 No remaining production hardening items are currently planned.
