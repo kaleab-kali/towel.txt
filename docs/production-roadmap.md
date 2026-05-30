@@ -107,6 +107,9 @@ hardening.
 11. `ci/quality-gates`
     - Run security audit, Node 20 and 22 CI, and performance smoke gates.
 
+12. `ci/codeql-analysis`
+    - Run CodeQL JavaScript and TypeScript security analysis on PRs, main, and a weekly schedule.
+
 ## Production Hardening
 
 No remaining production hardening items are currently planned.
