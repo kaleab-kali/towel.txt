@@ -21,6 +21,7 @@ Versioning.
 - Example Markdown document and generated printable HTML output.
 - Example custom print CSS file.
 - Front matter metadata parsing for document title, subtitle, author, date, and cover fields.
+- GitHub Actions workflow dependencies updated to Node 24-compatible majors.
 - Local relative image asset copying with copied, skipped, and missing diagnostics.
 - Local image paths with Windows separators are handled consistently across platforms.
 - Local image asset output directories with generated image path rewriting.
