@@ -123,6 +123,10 @@ hardening.
     - Move completed changelog entries into a dated release section.
     - Keep the release check compatible with an empty Unreleased section.
 
+16. `ci/update-actions-runtime`
+    - Update GitHub Actions workflow dependencies to Node 24-compatible major versions.
+    - Clear release workflow warnings from deprecated Node 20 action runtimes.
+
 ## Production Hardening
 
 No remaining production hardening items are currently planned.
