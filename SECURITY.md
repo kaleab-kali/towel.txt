@@ -8,8 +8,9 @@ version once package publishing begins.
 For renderer behavior and documented limits, see
 [docs/security-and-limits.md](docs/security-and-limits.md).
 
-Automated security checks include high-severity dependency audits in CI and
-CodeQL analysis for JavaScript and TypeScript.
+Automated security checks include high-severity dependency audits in CI, CodeQL
+analysis for JavaScript and TypeScript, and grouped Dependabot update pull
+requests for npm dependencies and GitHub Actions.
 
 ## Reporting a vulnerability
 

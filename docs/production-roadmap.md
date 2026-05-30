@@ -114,6 +114,10 @@ hardening.
     - Run the full CI verification suite on Windows with Node 22.
     - Keep Ubuntu coverage on both supported Node 20 and Node 22 releases.
 
+14. `chore/dependency-update-automation`
+    - Open grouped Dependabot pull requests for npm dependencies.
+    - Open grouped Dependabot pull requests for GitHub Actions.
+
 ## Production Hardening
 
 No remaining production hardening items are currently planned.
