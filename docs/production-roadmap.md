@@ -110,6 +110,10 @@ hardening.
 12. `ci/codeql-analysis`
     - Run CodeQL JavaScript and TypeScript security analysis on PRs, main, and a weekly schedule.
 
+13. `ci/windows-compatibility`
+    - Run the full CI verification suite on Windows with Node 22.
+    - Keep Ubuntu coverage on both supported Node 20 and Node 22 releases.
+
 ## Production Hardening
 
 No remaining production hardening items are currently planned.

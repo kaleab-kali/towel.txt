@@ -11,14 +11,18 @@ permissions:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        node-version:
-          - 20
-          - 22
+        include:
+          - os: ubuntu-latest
+            node-version: 20
+          - os: ubuntu-latest
+            node-version: 22
+          - os: windows-latest
+            node-version: 22
 
     steps:
       - name: Checkout
@@ -39,7 +43,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Security audit
-        if: ${{ matrix.node-version == 22 }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.node-version == 22 }}
         run: pnpm security:audit
 
       - name: Release checks
