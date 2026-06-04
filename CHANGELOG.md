@@ -12,6 +12,7 @@ Versioning.
 - Release workflow serialization and timeout guardrails for safer publishing.
 - Maintainer release preflight check for repository metadata, branch protection,
   workflow health, npm package state, and publish credentials.
+- Automated coverage for release preflight success and failure scenarios.
 
 ## 0.1.0 - 2026-05-30
 

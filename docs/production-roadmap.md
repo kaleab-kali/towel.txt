@@ -148,6 +148,12 @@ hardening.
     - Check GitHub repository settings, branch protection, workflow health, npm
       package state, and npm publish credentials before release.
 
+22. `test/release-preflight`
+    - Add automated release preflight coverage with mocked GitHub and npm
+      responses.
+    - Cover success, missing publish credentials, already-published versions,
+      and failed workflow health.
+
 ## Production Hardening
 
 No remaining production hardening items are currently planned.
