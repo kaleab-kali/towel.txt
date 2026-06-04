@@ -10,7 +10,9 @@ For renderer behavior and documented limits, see
 
 Automated security checks include high-severity dependency audits in CI, CodeQL
 analysis for JavaScript and TypeScript, and grouped Dependabot update pull
-requests for npm dependencies and GitHub Actions.
+requests for npm dependencies and GitHub Actions. Routine npm update automation
+is limited to minor and patch updates; major package migrations should be
+planned and reviewed separately.
 
 ## Reporting a vulnerability
 

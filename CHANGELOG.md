@@ -25,6 +25,7 @@ Versioning.
 - Local relative image asset copying with copied, skipped, and missing diagnostics.
 - Local image paths with Windows separators are handled consistently across platforms.
 - Local image asset output directories with generated image path rewriting.
+- Minor and patch Dependabot grouping with manual handling for major npm updates.
 - Markdown heading extraction with stable heading IDs.
 - Markdown body HTML rendering with safe raw HTML escaping.
 - Named document themes: `default`, `compact`, and `report`.
