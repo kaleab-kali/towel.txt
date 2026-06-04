@@ -22,9 +22,10 @@ The `Release` workflow can run the release gate from GitHub Actions.
 2. Open the workflow from the Actions tab.
 3. Enter the release version.
 4. Leave `publish` disabled to run verification and package dry-run only.
-5. Enable `publish` only when the release should publish to npm and create a
+5. Configure the repository secret `NPM_TOKEN` before enabling publish.
+6. Enable `publish` only when the release should publish to npm and create a
    GitHub release.
 
 Publishing uses npm provenance from GitHub Actions and requires npm credentials
 through `NPM_TOKEN` or an equivalent trusted publishing setup for this
-repository.
+repository. The workflow fails before publishing when the token is missing.

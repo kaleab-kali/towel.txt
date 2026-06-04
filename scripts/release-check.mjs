@@ -8,10 +8,12 @@ const failures = [];
 const packageJson = JSON.parse(await readProjectFile("package.json"));
 const changelog = await readProjectFile("CHANGELOG.md");
 const metaSource = await readProjectFile("src/meta.ts");
+const releaseWorkflow = await readProjectFile(".github/workflows/release.yml");
 
 checkPackageMetadata(packageJson);
 checkVersionMetadata(packageJson, metaSource, changelog);
 checkChangelog(changelog);
+checkReleaseWorkflow(releaseWorkflow);
 
 if (failures.length > 0) {
   console.error("Release checks failed:");
@@ -169,6 +171,25 @@ function checkChangelog(changelogText) {
       "CHANGELOG.md Unreleased must include at least one bullet."
     );
   }
+}
+
+function checkReleaseWorkflow(workflowText) {
+  expect(
+    workflowText.includes("node scripts/verify-publish-prerequisites.mjs"),
+    "Release workflow must verify publish prerequisites before publishing."
+  );
+  expect(
+    workflowText.includes("NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}"),
+    "Release workflow must read the NPM_TOKEN secret through NODE_AUTH_TOKEN."
+  );
+
+  const prerequisiteIndex = workflowText.indexOf("Verify publish prerequisites");
+  const publishIndex = workflowText.indexOf("Publish package");
+
+  expect(
+    prerequisiteIndex !== -1 && publishIndex !== -1 && prerequisiteIndex < publishIndex,
+    "Release workflow must verify publish prerequisites before the publish step."
+  );
 }
 
 function getSecondLevelSection(markdown, title) {

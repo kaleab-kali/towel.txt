@@ -72,6 +72,12 @@ jobs:
       - name: Package dry run
         run: npm pack --dry-run
 
+      - name: Verify publish prerequisites
+        if: ${{ inputs.publish }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: node scripts/verify-publish-prerequisites.mjs
+
       - name: Extract release notes
         if: ${{ inputs.publish }}
         run: node scripts/extract-release-notes.mjs "${{ inputs.version }}" release-notes.md
