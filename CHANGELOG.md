@@ -43,6 +43,7 @@ Versioning.
 - Project config files with `--config` and `--no-config`.
 - Release checks for changelog, package metadata, and version consistency.
 - Release workflow for verified package dry-runs and optional publishing.
+- Release workflow publish prerequisite validation for npm credentials.
 - Security audit and performance smoke gates in CI and release verification.
 - Vitest upgraded to a patched 4.x release for GHSA-5xrq-8626-4rwp.
 - Windows CI coverage for cross-platform CLI verification.

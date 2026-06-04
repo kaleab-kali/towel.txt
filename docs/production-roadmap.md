@@ -135,6 +135,10 @@ hardening.
     - Upgrade Vitest to a patched 4.x release for GHSA-5xrq-8626-4rwp.
     - Keep the broader ESLint and TypeScript major migrations out of the first release path.
 
+19. `ci/publish-prerequisites`
+    - Fail release publish attempts early when the npm publish token is missing.
+    - Verify the publish prerequisite guard in `pnpm release:check`.
+
 ## Production Hardening
 
 No remaining production hardening items are currently planned.
