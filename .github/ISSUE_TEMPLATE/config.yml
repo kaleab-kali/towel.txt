@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/kaleab-kali/towel.txt/security/policy
+    about: Report security issues privately through the security policy.
+  - name: CLI reference
+    url: https://github.com/kaleab-kali/towel.txt/blob/main/docs/cli-reference.md
+    about: Check command options, config fields, and workflow examples.

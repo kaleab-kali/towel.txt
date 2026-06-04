@@ -7,7 +7,14 @@ body:
     id: problem
     attributes:
       label: Problem
-      description: What user problem would this solve?
+      description: What user workflow is blocked or awkward today?
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current workaround
+      description: How do you handle this today, if at all?
     validations:
       required: true
   - type: textarea
@@ -18,6 +25,33 @@ body:
     validations:
       required: true
   - type: textarea
+    id: example
+    attributes:
+      label: Example command or Markdown
+      description: Show what the feature would look like in CLI usage or Markdown input.
+      render: markdown
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Output target
+      description: Which output path is most affected?
+      multiple: true
+      options:
+        - HTML
+        - PDF
+        - CLI workflow
+        - Configuration
+        - Package or release workflow
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
     id: alternatives
     attributes:
       label: Alternatives considered
+      description: List other approaches and why they are less suitable.
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Add links, examples, screenshots, or generated output if useful.
