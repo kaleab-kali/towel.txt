@@ -19,15 +19,26 @@ The `Release` workflow can run the release gate from GitHub Actions.
 
 1. Update `package.json`, `src/meta.ts`, and `CHANGELOG.md` to the same release
    version.
-2. Open the workflow from the Actions tab.
-3. Enter the release version.
-4. Leave `publish` disabled to run verification and package dry-run only.
-5. Configure the repository secret `NPM_TOKEN` before enabling publish.
-6. Enable `publish` only when the release should publish to npm and create a
+2. Configure the repository secret `NPM_TOKEN` before enabling publish:
+
+   ```bash
+   gh secret set NPM_TOKEN --repo kaleab-kali/towel.txt
+   ```
+
+3. Run the maintainer preflight:
+
+   ```bash
+   pnpm release:preflight
+   ```
+
+4. Open the workflow from the Actions tab.
+5. Enter the release version.
+6. Leave `publish` disabled to run verification and package dry-run only.
+7. Enable `publish` only when the release should publish to npm and create a
    GitHub release.
 
 Publishing uses npm provenance from GitHub Actions and requires npm credentials
-through `NPM_TOKEN` or an equivalent trusted publishing setup for this
-repository. The workflow fails before publishing when the token is missing.
+through `NPM_TOKEN`. The workflow fails before publishing when the token is
+missing.
 Release workflow runs are serialized per Git ref and the release job has a
 20-minute timeout so overlapping or stalled release attempts fail predictably.

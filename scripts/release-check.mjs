@@ -120,6 +120,11 @@ function checkPackageMetadata(manifest) {
     "package.json perf:smoke must run the performance smoke script."
   );
   expectEqual(
+    manifest.scripts?.["release:preflight"],
+    "node scripts/release-preflight.mjs",
+    "package.json release:preflight must run the release preflight script."
+  );
+  expectEqual(
     manifest.scripts?.["security:audit"],
     "pnpm audit --audit-level high",
     "package.json security:audit must run a high-severity dependency audit."
