@@ -1,55 +1,84 @@
 import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
-const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const npmCommand = process.platform === "win32" ? "cmd.exe" : "npm";
-const npmArgsPrefix = process.platform === "win32" ? ["/d", "/s", "/c", "npm.cmd"] : [];
-const repository = "kaleab-kali/towel.txt";
-const branch = "main";
-const requiredContexts = [
+const defaultPackageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const defaultNpmCommand = process.platform === "win32" ? "cmd.exe" : "npm";
+const defaultNpmArgsPrefix = process.platform === "win32" ? ["/d", "/s", "/c", "npm.cmd"] : [];
+const defaultRepository = "kaleab-kali/towel.txt";
+const defaultBranch = "main";
+const defaultRequiredContexts = [
   "Analyze JavaScript and TypeScript",
   "CodeQL",
   "verify (ubuntu-latest, 20)",
   "verify (ubuntu-latest, 22)",
   "verify (windows-latest, 22)"
 ];
-const failures = [];
-const warnings = [];
-const manifest = JSON.parse(await readFile(path.join(packageRoot, "package.json"), "utf8"));
 
-await checkRepositoryMetadata();
-await checkBranchProtection();
-await checkMainWorkflowRuns();
-await checkNpmSecret();
-await checkNpmPackageState();
+if (isCliEntryPoint()) {
+  const result = await runReleasePreflight();
 
-if (warnings.length > 0) {
-  for (const warning of warnings) {
-    process.stderr.write(`Warning: ${warning}\n`);
-  }
-}
-
-if (failures.length > 0) {
-  console.error("Release preflight failed:");
-
-  for (const failure of failures) {
-    console.error(`- ${failure}`);
+  if (result.warnings.length > 0) {
+    for (const warning of result.warnings) {
+      process.stderr.write(`Warning: ${warning}\n`);
+    }
   }
 
-  process.exit(1);
+  if (result.failures.length > 0) {
+    console.error("Release preflight failed:");
+
+    for (const failure of result.failures) {
+      console.error(`- ${failure}`);
+    }
+
+    process.exit(1);
+  }
+
+  process.stdout.write("Release preflight passed.\n");
 }
 
-process.stdout.write("Release preflight passed.\n");
+export async function runReleasePreflight(options = {}) {
+  const packageRoot = options.packageRoot ?? defaultPackageRoot;
+  const manifest =
+    options.manifest ?? JSON.parse(await readFile(path.join(packageRoot, "package.json"), "utf8"));
+  const state = {
+    branch: options.branch ?? defaultBranch,
+    failures: [],
+    manifest,
+    npmArgsPrefix: options.npmArgsPrefix ?? defaultNpmArgsPrefix,
+    npmCommand: options.npmCommand ?? defaultNpmCommand,
+    repository: options.repository ?? defaultRepository,
+    requiredContexts: options.requiredContexts ?? defaultRequiredContexts,
+    runCommand: options.runCommand ?? createCommandRunner(packageRoot),
+    warnings: []
+  };
 
-async function checkRepositoryMetadata() {
-  const repo = await runJson("gh", [
+  await checkRepositoryMetadata(state);
+  await checkBranchProtection(state);
+  await checkMainWorkflowRuns(state);
+  await checkNpmSecret(state);
+  await checkNpmPackageState(state);
+
+  return {
+    failures: state.failures,
+    warnings: state.warnings
+  };
+}
+
+function isCliEntryPoint() {
+  const entry = process.argv[1];
+
+  return entry ? import.meta.url === pathToFileURL(path.resolve(entry)).href : false;
+}
+
+async function checkRepositoryMetadata(state) {
+  const repo = await runJson(state, "gh", [
     "repo",
     "view",
-    repository,
+    state.repository,
     "--json",
     [
       "defaultBranchRef",
@@ -66,69 +95,81 @@ async function checkRepositoryMetadata() {
     ].join(",")
   ]);
 
-  expect(repo.isPrivate === false, "GitHub repository must be public.");
-  expect(repo.defaultBranchRef?.name === branch, "GitHub default branch must be main.");
+  expect(state, repo.isPrivate === false, "GitHub repository must be public.");
   expect(
-    repo.description === manifest.description,
+    state,
+    repo.defaultBranchRef?.name === state.branch,
+    "GitHub default branch must be main."
+  );
+  expect(
+    state,
+    repo.description === state.manifest.description,
     "GitHub repository description must match package.json."
   );
   expect(
-    repo.homepageUrl === manifest.homepage,
+    state,
+    repo.homepageUrl === state.manifest.homepage,
     "GitHub repository homepage must point to the README."
   );
-  expect(repo.licenseInfo?.key === "mit", "GitHub repository license must be MIT.");
-  expect(repo.hasIssuesEnabled === true, "GitHub issues must be enabled.");
-  expect(repo.mergeCommitAllowed === true, "GitHub merge commits must be enabled.");
-  expect(repo.squashMergeAllowed === false, "GitHub squash merges must be disabled.");
-  expect(repo.rebaseMergeAllowed === false, "GitHub rebase merges must be disabled.");
-  expect(repo.deleteBranchOnMerge === false, "GitHub branch auto-delete must be disabled.");
+  expect(state, repo.licenseInfo?.key === "mit", "GitHub repository license must be MIT.");
+  expect(state, repo.hasIssuesEnabled === true, "GitHub issues must be enabled.");
+  expect(state, repo.mergeCommitAllowed === true, "GitHub merge commits must be enabled.");
+  expect(state, repo.squashMergeAllowed === false, "GitHub squash merges must be disabled.");
+  expect(state, repo.rebaseMergeAllowed === false, "GitHub rebase merges must be disabled.");
+  expect(state, repo.deleteBranchOnMerge === false, "GitHub branch auto-delete must be disabled.");
 
   const topics = (repo.repositoryTopics ?? []).map((topic) => topic.name);
   const requiredTopics = ["markdown", "cli", "html", "pdf", "typescript", "documents"];
   const missingTopics = requiredTopics.filter((topic) => !topics.includes(topic));
 
   expect(
+    state,
     missingTopics.length === 0,
     `GitHub repository topics must include ${missingTopics.join(", ")}.`
   );
 }
 
-async function checkBranchProtection() {
-  const protection = await runJson("gh", [
+async function checkBranchProtection(state) {
+  const protection = await runJson(state, "gh", [
     "api",
-    `repos/${repository}/branches/${branch}/protection`
+    `repos/${state.repository}/branches/${state.branch}/protection`
   ]);
   const contexts = protection.required_status_checks?.contexts ?? [];
-  const missingContexts = requiredContexts.filter((context) => !contexts.includes(context));
+  const missingContexts = state.requiredContexts.filter((context) => !contexts.includes(context));
 
   expect(
+    state,
     protection.required_status_checks?.strict === true,
     "main branch protection must require branches to be up to date before merging."
   );
   expect(
+    state,
     missingContexts.length === 0,
     `main branch protection must require ${missingContexts.join(", ")}.`
   );
   expect(
+    state,
     protection.allow_force_pushes?.enabled === false,
     "main branch protection must reject force pushes."
   );
   expect(
+    state,
     protection.allow_deletions?.enabled === false,
     "main branch protection must reject branch deletion."
   );
   expect(
+    state,
     protection.required_conversation_resolution?.enabled === true,
     "main branch protection must require conversation resolution."
   );
 }
 
-async function checkMainWorkflowRuns() {
-  const runs = await runJson("gh", [
+async function checkMainWorkflowRuns(state) {
+  const runs = await runJson(state, "gh", [
     "run",
     "list",
     "--branch",
-    branch,
+    state.branch,
     "--limit",
     "10",
     "--json",
@@ -145,10 +186,11 @@ async function checkMainWorkflowRuns() {
   for (const workflowName of ["CI", "CodeQL", "Release"]) {
     const run = latestByWorkflow.get(workflowName);
 
-    expect(run !== undefined, `${workflowName} must have a recent main branch run.`);
+    expect(state, run !== undefined, `${workflowName} must have a recent main branch run.`);
 
     if (run) {
       expect(
+        state,
         run.status === "completed" && run.conclusion === "success",
         `${workflowName} latest main branch run must be successful.`
       );
@@ -156,20 +198,30 @@ async function checkMainWorkflowRuns() {
   }
 }
 
-async function checkNpmSecret() {
-  const result = await run("gh", ["secret", "list", "--repo", repository]);
+async function checkNpmSecret(state) {
+  const result = await state.runCommand("gh", ["secret", "list", "--repo", state.repository]);
+
+  if (result.exitCode !== 0) {
+    fail(state, `gh secret list --repo ${state.repository} failed.`);
+    return;
+  }
+
   const secretNames = result.stdout
     .split(/\r?\n/u)
     .map((line) => line.trim().split(/\s+/u)[0])
     .filter(Boolean);
 
-  expect(secretNames.includes("NPM_TOKEN"), "GitHub Actions secret NPM_TOKEN must be configured.");
+  expect(
+    state,
+    secretNames.includes("NPM_TOKEN"),
+    "GitHub Actions secret NPM_TOKEN must be configured."
+  );
 }
 
-async function checkNpmPackageState() {
-  const result = await run(
-    npmCommand,
-    [...npmArgsPrefix, "view", manifest.name, "version", "--json"],
+async function checkNpmPackageState(state) {
+  const result = await state.runCommand(
+    state.npmCommand,
+    [...state.npmArgsPrefix, "view", state.manifest.name, "version", "--json"],
     {
       allowFailure: true
     }
@@ -182,65 +234,81 @@ async function checkNpmPackageState() {
       return;
     }
 
-    fail(`npm registry lookup for ${manifest.name} failed.`);
+    fail(state, `npm registry lookup for ${state.manifest.name} failed.`);
     return;
   }
 
-  const publishedVersion = JSON.parse(result.stdout);
+  let publishedVersion;
 
-  if (publishedVersion === manifest.version) {
-    fail(`npm package ${manifest.name}@${manifest.version} is already published.`);
+  try {
+    publishedVersion = JSON.parse(result.stdout);
+  } catch {
+    fail(state, `npm registry lookup for ${state.manifest.name} returned invalid JSON.`);
+    return;
+  }
+
+  if (publishedVersion === state.manifest.version) {
+    fail(
+      state,
+      `npm package ${state.manifest.name}@${state.manifest.version} is already published.`
+    );
   } else {
-    warnings.push(
-      `npm package ${manifest.name} already exists at ${publishedVersion}; verify this is expected.`
+    state.warnings.push(
+      `npm package ${state.manifest.name} already exists at ${publishedVersion}; verify this is expected.`
     );
   }
 }
 
-async function runJson(command, args) {
-  const result = await run(command, args);
+async function runJson(state, command, args) {
+  const result = await state.runCommand(command, args);
+
+  if (result.exitCode !== 0) {
+    fail(state, `${command} ${args.join(" ")} failed.`);
+    return {};
+  }
 
   try {
     return JSON.parse(result.stdout);
   } catch {
-    fail(`${command} ${args.join(" ")} did not return valid JSON.`);
+    fail(state, `${command} ${args.join(" ")} did not return valid JSON.`);
     return {};
   }
 }
 
-async function run(command, args, options = {}) {
-  try {
-    const result = await execFileAsync(command, args, {
-      cwd: packageRoot,
-      env: process.env,
-      windowsHide: true
-    });
+function createCommandRunner(packageRoot) {
+  return async function run(command, args, options = {}) {
+    try {
+      const result = await execFileAsync(command, args, {
+        cwd: packageRoot,
+        env: process.env,
+        windowsHide: true
+      });
 
-    return { exitCode: 0, stdout: result.stdout, stderr: result.stderr };
-  } catch (error) {
-    if (options.allowFailure) {
+      return { exitCode: 0, stdout: result.stdout, stderr: result.stderr };
+    } catch (error) {
+      if (options.allowFailure) {
+        return {
+          exitCode: Number.isInteger(error.code) ? error.code : 1,
+          stdout: String(error.stdout ?? ""),
+          stderr: String(error.stderr ?? "")
+        };
+      }
+
       return {
-        exitCode: Number.isInteger(error.code) ? error.code : 1,
+        exitCode: 1,
         stdout: String(error.stdout ?? ""),
         stderr: String(error.stderr ?? "")
       };
     }
-
-    fail(`${command} ${args.join(" ")} failed.`);
-    return {
-      exitCode: 1,
-      stdout: String(error.stdout ?? ""),
-      stderr: String(error.stderr ?? "")
-    };
-  }
+  };
 }
 
-function expect(condition, message) {
+function expect(state, condition, message) {
   if (!condition) {
-    fail(message);
+    fail(state, message);
   }
 }
 
-function fail(message) {
-  failures.push(message);
+function fail(state, message) {
+  state.failures.push(message);
 }
