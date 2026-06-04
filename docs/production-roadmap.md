@@ -143,6 +143,11 @@ hardening.
     - Serialize release workflow runs per Git ref.
     - Add a release job timeout and verify it through `pnpm release:check`.
 
+21. `chore/release-preflight-check`
+    - Add a maintainer release preflight command.
+    - Check GitHub repository settings, branch protection, workflow health, npm
+      package state, and npm publish credentials before release.
+
 ## Production Hardening
 
 No remaining production hardening items are currently planned.
