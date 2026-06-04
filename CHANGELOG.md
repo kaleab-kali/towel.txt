@@ -44,6 +44,7 @@ Versioning.
 - Release checks for changelog, package metadata, and version consistency.
 - Release workflow for verified package dry-runs and optional publishing.
 - Security audit and performance smoke gates in CI and release verification.
+- Vitest upgraded to a patched 4.x release for GHSA-5xrq-8626-4rwp.
 - Windows CI coverage for cross-platform CLI verification.
 - Print-friendly footnotes with backlinks.
 - Render summary JSON files for CI and script workflows.
