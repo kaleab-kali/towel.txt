@@ -127,6 +127,14 @@ hardening.
     - Update GitHub Actions workflow dependencies to Node 24-compatible major versions.
     - Clear release workflow warnings from deprecated Node 20 action runtimes.
 
+17. `chore/dependabot-update-policy`
+    - Group routine npm dependency updates by dependency type for minor and patch updates.
+    - Ignore automatic semver-major npm updates so breaking toolchain migrations are planned separately.
+
+18. `chore/vitest-security-update`
+    - Upgrade Vitest to a patched 4.x release for GHSA-5xrq-8626-4rwp.
+    - Keep the broader ESLint and TypeScript major migrations out of the first release path.
+
 ## Production Hardening
 
 No remaining production hardening items are currently planned.

@@ -25,6 +25,7 @@ Versioning.
 - Local relative image asset copying with copied, skipped, and missing diagnostics.
 - Local image paths with Windows separators are handled consistently across platforms.
 - Local image asset output directories with generated image path rewriting.
+- Minor and patch Dependabot grouping with manual handling for major npm updates.
 - Markdown heading extraction with stable heading IDs.
 - Markdown body HTML rendering with safe raw HTML escaping.
 - Named document themes: `default`, `compact`, and `report`.
@@ -43,6 +44,7 @@ Versioning.
 - Release checks for changelog, package metadata, and version consistency.
 - Release workflow for verified package dry-runs and optional publishing.
 - Security audit and performance smoke gates in CI and release verification.
+- Vitest upgraded to a patched 4.x release for GHSA-5xrq-8626-4rwp.
 - Windows CI coverage for cross-platform CLI verification.
 - Print-friendly footnotes with backlinks.
 - Render summary JSON files for CI and script workflows.
