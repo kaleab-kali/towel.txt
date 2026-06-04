@@ -139,6 +139,10 @@ hardening.
     - Fail release publish attempts early when the npm publish token is missing.
     - Verify the publish prerequisite guard in `pnpm release:check`.
 
+20. `ci/release-workflow-guardrails`
+    - Serialize release workflow runs per Git ref.
+    - Add a release job timeout and verify it through `pnpm release:check`.
+
 ## Production Hardening
 
 No remaining production hardening items are currently planned.
