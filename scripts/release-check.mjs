@@ -175,6 +175,16 @@ function checkChangelog(changelogText) {
 
 function checkReleaseWorkflow(workflowText) {
   expect(
+    workflowText.includes("concurrency:") &&
+      workflowText.includes("group: release-${{ github.ref }}") &&
+      workflowText.includes("cancel-in-progress: false"),
+    "Release workflow must serialize release runs without canceling an active release."
+  );
+  expect(
+    workflowText.includes("timeout-minutes: 20"),
+    "Release workflow must set a release job timeout."
+  );
+  expect(
     workflowText.includes("node scripts/verify-publish-prerequisites.mjs"),
     "Release workflow must verify publish prerequisites before publishing."
   );

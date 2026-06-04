@@ -7,6 +7,10 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Release workflow serialization and timeout guardrails for safer publishing.
+
 ## 0.1.0 - 2026-05-30
 
 ### Added

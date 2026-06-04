@@ -29,3 +29,5 @@ The `Release` workflow can run the release gate from GitHub Actions.
 Publishing uses npm provenance from GitHub Actions and requires npm credentials
 through `NPM_TOKEN` or an equivalent trusted publishing setup for this
 repository. The workflow fails before publishing when the token is missing.
+Release workflow runs are serialized per Git ref and the release job has a
+20-minute timeout so overlapping or stalled release attempts fail predictably.
