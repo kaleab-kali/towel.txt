@@ -40,7 +40,7 @@ const manifest = {
 };
 
 describe("release preflight", () => {
-  it("passes when repository, branch protection, workflows, secrets, and npm state are ready", async () => {
+  it("passes when repository, branch protection, workflows, and npm state are ready", async () => {
     const { runReleasePreflight } = await loadPreflight();
     const result = await runReleasePreflight({
       manifest,
@@ -50,17 +50,6 @@ describe("release preflight", () => {
 
     expect(result.failures).toEqual([]);
     expect(result.warnings).toEqual([]);
-  });
-
-  it("reports a missing npm publish token", async () => {
-    const { runReleasePreflight } = await loadPreflight();
-    const result = await runReleasePreflight({
-      manifest,
-      npmCommand: "npm",
-      runCommand: createCommandRunner({ secrets: "" })
-    });
-
-    expect(result.failures).toContain("GitHub Actions secret NPM_TOKEN must be configured.");
   });
 
   it("reports when the current package version is already published", async () => {
@@ -102,7 +91,6 @@ function createCommandRunner(overrides: Partial<MockResponses> = {}): CommandRun
     protection: protectedBranch(),
     repository: publicRepository(),
     runs: [workflowRun("CI"), workflowRun("CodeQL"), workflowRun("Release")],
-    secrets: "NPM_TOKEN\t2026-06-04T00:00:00Z\n",
     ...overrides
   };
 
@@ -119,10 +107,6 @@ function createCommandRunner(overrides: Partial<MockResponses> = {}): CommandRun
       return ok(responses.runs);
     }
 
-    if (command === "gh" && args[0] === "secret") {
-      return { exitCode: 0, stderr: "", stdout: responses.secrets };
-    }
-
     if (command === "npm") {
       return responses.npm;
     }
@@ -136,7 +120,6 @@ type MockResponses = {
   protection: unknown;
   repository: unknown;
   runs: unknown[];
-  secrets: string;
 };
 
 function publicRepository() {

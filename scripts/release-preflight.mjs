@@ -59,7 +59,6 @@ export async function runReleasePreflight(options = {}) {
   await checkRepositoryMetadata(state);
   await checkBranchProtection(state);
   await checkMainWorkflowRuns(state);
-  await checkNpmSecret(state);
   await checkNpmPackageState(state);
 
   return {
@@ -196,26 +195,6 @@ async function checkMainWorkflowRuns(state) {
       );
     }
   }
-}
-
-async function checkNpmSecret(state) {
-  const result = await state.runCommand("gh", ["secret", "list", "--repo", state.repository]);
-
-  if (result.exitCode !== 0) {
-    fail(state, `gh secret list --repo ${state.repository} failed.`);
-    return;
-  }
-
-  const secretNames = result.stdout
-    .split(/\r?\n/u)
-    .map((line) => line.trim().split(/\s+/u)[0])
-    .filter(Boolean);
-
-  expect(
-    state,
-    secretNames.includes("NPM_TOKEN"),
-    "GitHub Actions secret NPM_TOKEN must be configured."
-  );
 }
 
 async function checkNpmPackageState(state) {
