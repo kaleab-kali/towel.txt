@@ -34,6 +34,24 @@ Body text.
     ]);
   });
 
+  it("keeps literal hashes when they are not closing markers", () => {
+    expect(extractHeadings("## Release # Notes")).toEqual([
+      { id: "release-notes", level: 2, line: 1, text: "Release # Notes" }
+    ]);
+  });
+
+  it("ignores malformed ATX headings", () => {
+    expect(extractHeadings("#No separator\n####### Too deep\n    # Indented code")).toEqual([]);
+  });
+
+  it("handles tab-heavy non-heading lines without regex backtracking", () => {
+    const tabHeavyInput = `${"\t".repeat(10000)}not a heading\n### Valid`;
+
+    expect(extractHeadings(tabHeavyInput)).toEqual([
+      { id: "valid", level: 3, line: 2, text: "Valid" }
+    ]);
+  });
+
   it("keeps duplicate headings addressable with unique IDs", () => {
     expect(extractHeadings("# Intro\n## Intro\n## Intro")).toEqual([
       { id: "intro", level: 1, line: 1, text: "Intro" },
