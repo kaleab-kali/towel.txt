@@ -12,7 +12,6 @@ interface FenceState {
   size: number;
 }
 
-const atxHeadingPattern = /^[ \t]{0,3}(#{1,6})(?:[ \t]+|$)(.*)$/;
 const fencePattern = /^[ \t]{0,3}(`{3,}|~{3,})/;
 
 export function extractHeadings(markdown: string): Heading[] {
@@ -27,24 +26,61 @@ export function extractHeadings(markdown: string): Heading[] {
       return;
     }
 
-    const match = atxHeadingPattern.exec(line);
+    const heading = parseAtxHeading(line);
 
-    if (!match) {
+    if (!heading) {
       return;
     }
 
-    const [, marker, rawText] = match;
-    const text = normalizeHeadingText(rawText);
+    const text = normalizeHeadingText(heading.rawText);
 
     headings.push({
       id: createUniqueHeadingId(text, seenIds),
-      level: marker.length,
+      level: heading.level,
       line: index + 1,
       text
     });
   });
 
   return headings;
+}
+
+function parseAtxHeading(line: string): { level: number; rawText: string } | undefined {
+  let index = 0;
+
+  while (index < line.length && index < 4 && isSpaceOrTab(line[index])) {
+    index += 1;
+  }
+
+  if (index > 3) {
+    return undefined;
+  }
+
+  let level = 0;
+
+  while (line[index] === "#") {
+    level += 1;
+    index += 1;
+  }
+
+  if (level === 0 || level > 6) {
+    return undefined;
+  }
+
+  const separator = line[index];
+
+  if (separator !== undefined && !isSpaceOrTab(separator)) {
+    return undefined;
+  }
+
+  while (isSpaceOrTab(line[index])) {
+    index += 1;
+  }
+
+  return {
+    level,
+    rawText: line.slice(index)
+  };
 }
 
 function nextFenceState(
@@ -74,7 +110,35 @@ function nextFenceState(
 
 function normalizeHeadingText(rawText: string): string {
   return rawText
-    .replace(/[ \t]+#{1,}[ \t]*$/u, "")
+    .slice(0, getClosingHashStart(rawText))
     .trim()
     .replace(/\\([\\`*_[\]{}()#+\-.!?|>])/g, "$1");
+}
+
+function getClosingHashStart(rawText: string): number {
+  let end = rawText.length;
+
+  while (end > 0 && isSpaceOrTab(rawText[end - 1])) {
+    end -= 1;
+  }
+
+  let hashStart = end;
+
+  while (hashStart > 0 && rawText[hashStart - 1] === "#") {
+    hashStart -= 1;
+  }
+
+  if (hashStart === end || hashStart === 0 || !isSpaceOrTab(rawText[hashStart - 1])) {
+    return rawText.length;
+  }
+
+  while (hashStart > 0 && isSpaceOrTab(rawText[hashStart - 1])) {
+    hashStart -= 1;
+  }
+
+  return hashStart;
+}
+
+function isSpaceOrTab(value: string | undefined): boolean {
+  return value === " " || value === "\t";
 }
