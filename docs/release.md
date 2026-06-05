@@ -1,7 +1,8 @@
 # Release Process
 
-Towel.txt release metadata is prepared for the first public `0.1.0` package.
-Publishing still requires maintainer npm credentials.
+Towel.txt publishes from GitHub Actions with npm Trusted Publishing. The npm
+package trusts the repository workflow identity instead of a long-lived npm
+publish token.
 
 1. Confirm `pnpm release:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test`,
    `pnpm build`, `pnpm perf:smoke`, `pnpm security:audit`, and
@@ -19,11 +20,11 @@ The `Release` workflow can run the release gate from GitHub Actions.
 
 1. Update `package.json`, `src/meta.ts`, and `CHANGELOG.md` to the same release
    version.
-2. Configure the repository secret `NPM_TOKEN` before enabling publish:
-
-   ```bash
-   gh secret set NPM_TOKEN --repo kaleab-kali/towel.txt
-   ```
+2. Confirm npm Trusted Publishing is configured for:
+   - Organization or user: `kaleab-kali`
+   - Repository: `towel.txt`
+   - Workflow filename: `release.yml`
+   - Allowed action: `npm publish`
 
 3. Run the maintainer preflight:
 
@@ -37,8 +38,8 @@ The `Release` workflow can run the release gate from GitHub Actions.
 7. Enable `publish` only when the release should publish to npm and create a
    GitHub release.
 
-Publishing uses npm provenance from GitHub Actions and requires npm credentials
-through `NPM_TOKEN`. The workflow fails before publishing when the token is
-missing.
+Publishing uses npm Trusted Publishing through GitHub Actions OIDC. The release
+workflow grants `id-token: write`, uses Node `22.14.0`, installs npm `11.5.1`,
+and verifies that the OIDC environment is available before publishing.
 Release workflow runs are serialized per Git ref and the release job has a
 20-minute timeout so overlapping or stalled release attempts fail predictably.

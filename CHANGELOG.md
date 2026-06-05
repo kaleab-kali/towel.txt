@@ -14,6 +14,11 @@ Versioning.
   workflow health, npm package state, and publish credentials.
 - Automated coverage for release preflight success and failure scenarios.
 
+### Changed
+
+- Release publishing now uses npm Trusted Publishing instead of a long-lived
+  `NPM_TOKEN` secret.
+
 ## 0.1.0 - 2026-05-30
 
 ### Added

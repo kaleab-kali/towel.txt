@@ -194,8 +194,28 @@ function checkReleaseWorkflow(workflowText) {
     "Release workflow must verify publish prerequisites before publishing."
   );
   expect(
-    workflowText.includes("NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}"),
-    "Release workflow must read the NPM_TOKEN secret through NODE_AUTH_TOKEN."
+    workflowText.includes("id-token: write"),
+    "Release workflow must grant id-token: write for npm Trusted Publishing."
+  );
+  expect(
+    workflowText.includes("node-version: 22.14.0"),
+    "Release workflow must use Node 22.14.0 or newer for npm Trusted Publishing."
+  );
+  expect(
+    workflowText.includes("npm install -g npm@11.5.1"),
+    "Release workflow must install npm 11.5.1 or newer for npm Trusted Publishing."
+  );
+  expect(
+    workflowText.includes("npm publish --access public"),
+    "Release workflow must publish the public package through npm."
+  );
+  expect(
+    !workflowText.includes("NODE_AUTH_TOKEN") && !workflowText.includes("NPM_TOKEN"),
+    "Release workflow must not use long-lived npm publish tokens."
+  );
+  expect(
+    !workflowText.includes("--provenance"),
+    "Release workflow must rely on Trusted Publishing automatic provenance."
   );
 
   const prerequisiteIndex = workflowText.indexOf("Verify publish prerequisites");
