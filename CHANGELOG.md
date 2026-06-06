@@ -17,6 +17,7 @@ Versioning.
   render output.
 - `doctor --json` command for agent-friendly environment, config, and PDF
   browser readiness checks.
+- Agent workflow guide and package API reference for automation users.
 - JSON schemas for config files, render summaries, inspect output, and
   doctor output, and structured errors.
 - `--error-json` for machine-readable CLI errors on stderr.
