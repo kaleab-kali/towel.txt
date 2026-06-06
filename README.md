@@ -17,6 +17,7 @@ pulling in a large publishing system.
 - Insert explicit print page breaks.
 - Copy safe local image assets beside HTML output.
 - Add custom CSS on top of the built-in document styles.
+- Inspect Markdown inputs as JSON before rendering.
 - Use strict mode and JSON summaries in CI scripts.
 
 ## Install
@@ -65,6 +66,16 @@ towel-txt --version
 ```
 
 For the full command reference, see [docs/cli-reference.md](docs/cli-reference.md).
+
+Inspect a document without writing output:
+
+```bash
+towel-txt inspect document.md --json
+```
+
+The inspection JSON reports metadata, title source, headings, image references,
+warnings, loaded config, and the render plan. This is useful for automation and
+AI agents that need to validate a document before rendering it.
 
 ## Common Workflows
 

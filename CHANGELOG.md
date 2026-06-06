@@ -13,6 +13,8 @@ Versioning.
 - Maintainer release preflight check for repository metadata, branch protection,
   workflow health, npm package state, and publish credentials.
 - Automated coverage for release preflight success and failure scenarios.
+- `inspect --json` command for agent-friendly document analysis without writing
+  render output.
 
 ### Changed
 

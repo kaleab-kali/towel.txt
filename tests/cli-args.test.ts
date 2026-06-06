@@ -163,6 +163,37 @@ describe("parseCliArgs", () => {
     });
   });
 
+  it("parses inspect JSON mode", () => {
+    expect(parseCliArgs(["inspect", "doc.md", "--json", "--output", "planned.html"])).toEqual({
+      cover: false,
+      coverSpecified: false,
+      force: false,
+      inputPath: "doc.md",
+      json: true,
+      kind: "inspect",
+      minify: false,
+      minifySpecified: false,
+      noConfig: false,
+      outputPath: "planned.html",
+      stdin: false,
+      stdout: false,
+      strict: false,
+      strictSpecified: false,
+      tableOfContents: true,
+      tableOfContentsSpecified: false,
+      watch: false
+    });
+  });
+
+  it("parses inspect JSON mode from stdin", () => {
+    expect(parseCliArgs(["inspect", "--stdin", "--json", "--stdout"])).toMatchObject({
+      json: true,
+      kind: "inspect",
+      stdin: true,
+      stdout: true
+    });
+  });
+
   it("parses an explicit table of contents enablement", () => {
     expect(parseCliArgs(["doc.md", "--toc"])).toMatchObject({
       tableOfContents: true,
@@ -213,6 +244,18 @@ describe("parseCliArgs", () => {
 
   it("fails when an unsupported theme is provided", () => {
     expect(() => parseCliArgs(["doc.md", "--theme", "minimal"])).toThrow(CliUsageError);
+  });
+
+  it("fails when inspect mode is missing JSON output", () => {
+    expect(() => parseCliArgs(["inspect", "doc.md"])).toThrow(CliUsageError);
+  });
+
+  it("fails when JSON output is used outside inspect mode", () => {
+    expect(() => parseCliArgs(["doc.md", "--json"])).toThrow(CliUsageError);
+  });
+
+  it("fails when inspect mode is combined with watch mode", () => {
+    expect(() => parseCliArgs(["inspect", "doc.md", "--json", "--watch"])).toThrow(CliUsageError);
   });
 
   it("fails when table of contents flags conflict", () => {

@@ -5,6 +5,7 @@ import { Readable } from "node:stream";
 
 import { packageName, packageVersion } from "../meta.js";
 import { extractHeadings } from "../parser/headings.js";
+import { extractImageReferences, type ImageReference } from "../parser/images.js";
 import { getMetadataWarnings, parseMarkdownInput } from "../parser/metadata.js";
 import { renderDocument } from "../render/document.js";
 import { minifyHtml } from "../render/minify.js";
@@ -12,11 +13,12 @@ import {
   CliStrictModeError,
   CliUsageError,
   type CliCommand,
+  type CliRenderOptions,
   type OutputFormat,
   parseCliArgs
 } from "./args.js";
 import { copyLocalImageAssets, type ImageAssetCopyResult } from "./assets.js";
-import { type CliConfigDefaults, loadCliConfig } from "./config.js";
+import { type CliConfigDefaults, type LoadedCliConfig, loadCliConfig } from "./config.js";
 import { cliExitCodes, type CliExitCode } from "./exit-codes.js";
 import { type PdfPrintOptions, printHtmlToPdf } from "./pdf.js";
 import { getImageAssetWarning, getImageAssetWarnings, writeRenderSummary } from "./summary.js";
@@ -52,6 +54,31 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
       noConfig: parsedCommand.noConfig
     });
     const command = applyConfigDefaults(parsedCommand, loadedConfig?.defaults);
+    const outputFormat = getOutputFormat(command.format, command.outputPath);
+    const inputPath = command.inputPath ? path.resolve(io.cwd, command.inputPath) : undefined;
+    const outputPath = command.stdout
+      ? undefined
+      : command.outputPath
+        ? path.resolve(io.cwd, command.outputPath)
+        : command.inputPath
+          ? path.resolve(io.cwd, getDefaultOutputPath(command.inputPath, outputFormat))
+          : undefined;
+    const summaryJsonPath = command.summaryJsonPath
+      ? path.resolve(io.cwd, command.summaryJsonPath)
+      : undefined;
+
+    if (command.kind === "inspect") {
+      await inspectCommand({
+        command,
+        inputPath,
+        io,
+        loadedConfig,
+        outputFormat,
+        outputPath,
+        summaryJsonPath
+      });
+      return cliExitCodes.success;
+    }
 
     if (command.stdin && !command.stdout && !command.outputPath) {
       throw new CliUsageError("Expected --output or --stdout when reading from stdin.");
@@ -65,22 +92,9 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
       throw new CliUsageError("Watch mode requires file output instead of --stdout.");
     }
 
-    const outputFormat = getOutputFormat(command.format, command.outputPath);
-
     if (command.stdout && outputFormat === "pdf") {
       throw new CliUsageError("PDF output requires --output instead of --stdout.");
     }
-
-    const inputPath = command.inputPath ? path.resolve(io.cwd, command.inputPath) : undefined;
-    const outputPath = command.stdout
-      ? undefined
-      : path.resolve(
-          io.cwd,
-          command.outputPath ?? getDefaultOutputPath(command.inputPath ?? "", outputFormat)
-        );
-    const summaryJsonPath = command.summaryJsonPath
-      ? path.resolve(io.cwd, command.summaryJsonPath)
-      : undefined;
 
     await renderCommand({
       allowOverwrite: false,
@@ -129,11 +143,12 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
 }
 
 type RenderCommand = Extract<CliCommand, { kind: "render" }>;
+type InspectCommand = Extract<CliCommand, { kind: "inspect" }>;
 
-function applyConfigDefaults(
-  command: RenderCommand,
+function applyConfigDefaults<T extends CliRenderOptions & { kind: "inspect" | "render" }>(
+  command: T,
   defaults: CliConfigDefaults | undefined
-): RenderCommand {
+): T {
   if (!defaults) {
     return command;
   }
@@ -160,7 +175,240 @@ function applyConfigDefaults(
       : (defaults.tableOfContents ?? command.tableOfContents),
     theme: command.theme ?? defaults.theme,
     title: command.title ?? defaults.title
+  } as T;
+}
+
+async function inspectCommand({
+  command,
+  inputPath,
+  io,
+  loadedConfig,
+  outputFormat,
+  outputPath,
+  summaryJsonPath
+}: {
+  command: InspectCommand;
+  inputPath: string | undefined;
+  io: CliIo;
+  loadedConfig: LoadedCliConfig | undefined;
+  outputFormat: OutputFormat;
+  outputPath: string | undefined;
+  summaryJsonPath: string | undefined;
+}): Promise<void> {
+  const markdown = command.stdin
+    ? await readStdin(io.stdin ?? Readable.from([]))
+    : await readFile(requiredInputPath(inputPath), "utf8");
+  const parsedInput = parseMarkdownInput(markdown);
+  const headings = extractHeadings(parsedInput.content).map((heading) => ({
+    ...heading,
+    line: heading.line + parsedInput.contentLineOffset
+  }));
+  const title = getTitleInspection(command, parsedInput.metadata, headings);
+  const images = await inspectImages(extractImageReferences(markdown), inputPath);
+  const warnings = [
+    ...getMetadataWarnings(markdown),
+    ...images
+      .map((image) => getInspectedImageWarning(image))
+      .filter((warning): warning is string => Boolean(warning))
+  ];
+  const blockers = await getRenderPlanBlockers({
+    command,
+    inputPath,
+    outputFormat,
+    outputPath,
+    summaryJsonPath,
+    titleSource: title.source
+  });
+
+  io.stdout.write(
+    `${JSON.stringify(
+      {
+        config: {
+          defaultsLoaded: Boolean(loadedConfig),
+          path: loadedConfig?.path ?? null
+        },
+        document: {
+          headings,
+          metadata: parsedInput.metadata,
+          title
+        },
+        images,
+        input: {
+          bytes: Buffer.byteLength(markdown, "utf8"),
+          lines: countLines(markdown),
+          mode: command.stdin ? "stdin" : "file",
+          path: inputPath ?? null
+        },
+        package: {
+          name: packageName,
+          version: packageVersion
+        },
+        renderPlan: {
+          assetDirectory: command.assetDirectory ?? null,
+          blockers,
+          canRender: blockers.length === 0,
+          cssPath: command.cssPath ? path.resolve(io.cwd, command.cssPath) : null,
+          format: outputFormat,
+          minified: command.minify,
+          outputPath: outputPath ?? null,
+          pageSize: command.pageSize ?? null,
+          pdfBrowserPath: resolveOptionalPath(io.cwd, command.browserPath) ?? null,
+          printMargin: command.margin ?? null,
+          strict: command.strict,
+          stdout: command.stdout,
+          summaryJsonPath: summaryJsonPath ?? null,
+          tableOfContents: command.tableOfContents,
+          theme: command.theme ?? null
+        },
+        schemaVersion: 1,
+        warnings
+      },
+      null,
+      2
+    )}\n`
+  );
+}
+
+interface InspectedImageReference extends ImageReference {
+  exists: boolean | null;
+  path: string | null;
+}
+
+async function inspectImages(
+  references: ImageReference[],
+  inputPath: string | undefined
+): Promise<InspectedImageReference[]> {
+  const inputDirectory = inputPath ? path.dirname(inputPath) : undefined;
+
+  return Promise.all(
+    references.map(async (reference) => {
+      if (reference.status !== "local" || !inputDirectory) {
+        return {
+          ...reference,
+          exists: reference.status === "local" ? null : false,
+          path: null
+        };
+      }
+
+      const imagePath = path.resolve(inputDirectory, reference.source.replace(/\\/g, "/"));
+
+      return {
+        ...reference,
+        exists: await fileExists(imagePath),
+        path: imagePath
+      };
+    })
+  );
+}
+
+function getInspectedImageWarning(image: InspectedImageReference): string | undefined {
+  if (image.status === "skipped") {
+    return `Warning: image asset "${image.source}" was skipped: ${
+      image.reason ?? "unsupported image source"
+    }`;
+  }
+
+  if (image.exists === false) {
+    return `Warning: image asset "${image.source}" is missing.`;
+  }
+
+  return undefined;
+}
+
+function getTitleInspection(
+  command: CliRenderOptions,
+  metadata: { title?: string },
+  headings: Array<{ level: number; text: string }>
+): { source: "cli" | "fallback" | "heading" | "metadata"; value: string } {
+  if (command.title?.trim()) {
+    return {
+      source: "cli",
+      value: command.title
+    };
+  }
+
+  if (metadata.title?.trim()) {
+    return {
+      source: "metadata",
+      value: metadata.title
+    };
+  }
+
+  const heading = headings.find((candidate) => candidate.level === 1);
+
+  if (heading) {
+    return {
+      source: "heading",
+      value: heading.text
+    };
+  }
+
+  return {
+    source: "fallback",
+    value: "Untitled Document"
   };
+}
+
+async function getRenderPlanBlockers({
+  command,
+  inputPath,
+  outputFormat,
+  outputPath,
+  summaryJsonPath,
+  titleSource
+}: {
+  command: InspectCommand;
+  inputPath: string | undefined;
+  outputFormat: OutputFormat;
+  outputPath: string | undefined;
+  summaryJsonPath: string | undefined;
+  titleSource: "cli" | "fallback" | "heading" | "metadata";
+}): Promise<string[]> {
+  const blockers: string[] = [];
+
+  if (command.stdin && !command.stdout && !command.outputPath) {
+    blockers.push("Expected --output or --stdout when reading from stdin.");
+  }
+
+  if (command.stdout && outputFormat === "pdf") {
+    blockers.push("PDF output requires --output instead of --stdout.");
+  }
+
+  if (command.stdin && titleSource === "fallback") {
+    blockers.push("Expected --title, front matter title, or H1 when reading from stdin.");
+  }
+
+  if (inputPath && outputPath && pathsAreEqual(inputPath, outputPath)) {
+    blockers.push("Output path cannot replace the input Markdown file.");
+  }
+
+  if (outputPath && !command.force && (await fileExists(outputPath))) {
+    blockers.push("Output file already exists. Use --force to overwrite.");
+  }
+
+  if (summaryJsonPath) {
+    if (inputPath && pathsAreEqual(inputPath, summaryJsonPath)) {
+      blockers.push("Summary JSON path cannot replace the input Markdown file.");
+    }
+
+    if (outputPath && pathsAreEqual(outputPath, summaryJsonPath)) {
+      blockers.push("Summary JSON path cannot replace the generated output file.");
+    }
+
+    if (!command.force && (await fileExists(summaryJsonPath))) {
+      blockers.push("Summary JSON file already exists. Use --force to overwrite.");
+    }
+  }
+
+  return blockers;
+}
+
+function countLines(value: string): number {
+  if (value.length === 0) {
+    return 0;
+  }
+
+  return value.split(/\r?\n/).length;
 }
 
 async function renderCommand({
@@ -286,6 +534,7 @@ export function getHelpText(): string {
 
 Usage:
   ${packageName} <input.md> [--output output.html] [--title "Document Title"]
+  ${packageName} inspect <input.md> --json
   ${packageName} <input.md> --format pdf --output output.pdf
   ${packageName} <input.md> --watch [--output output.html]
   ${packageName} --stdin --stdout [--title "Document Title"]
@@ -298,6 +547,7 @@ Options:
       --css <path>     Append a custom CSS file to the default document styles.
       --force          Overwrite an existing output file.
       --format <type>  Output format: "html" or "pdf". Defaults to html, or pdf for .pdf outputs.
+      --json           Write machine-readable inspection output for the inspect command.
       --margin <value> Print page margin, for example "0.75in" or "18mm".
       --minify         Remove formatting whitespace from generated HTML output.
       --no-config      Disable default config file discovery.

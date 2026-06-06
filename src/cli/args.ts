@@ -5,37 +5,39 @@ import { cliExitCodes, type CliExitCode } from "./exit-codes.js";
 
 export type OutputFormat = "html" | "pdf";
 
+export interface CliRenderOptions {
+  browserPath?: string;
+  assetDirectory?: string;
+  configPath?: string;
+  cover: boolean;
+  coverSpecified: boolean;
+  cssPath?: string;
+  force: boolean;
+  format?: OutputFormat;
+  inputPath?: string;
+  margin?: string;
+  minify: boolean;
+  minifySpecified: boolean;
+  noConfig: boolean;
+  outputPath?: string;
+  pageSize?: string;
+  stdout: boolean;
+  stdin: boolean;
+  strict: boolean;
+  strictSpecified: boolean;
+  subtitle?: string;
+  summaryJsonPath?: string;
+  tableOfContents: boolean;
+  tableOfContentsSpecified: boolean;
+  theme?: ThemeName;
+  title?: string;
+  watch: boolean;
+}
+
 export type CliCommand =
   | { kind: "help" }
-  | {
-      browserPath?: string;
-      assetDirectory?: string;
-      configPath?: string;
-      cover: boolean;
-      coverSpecified: boolean;
-      cssPath?: string;
-      force: boolean;
-      format?: OutputFormat;
-      inputPath?: string;
-      kind: "render";
-      margin?: string;
-      minify: boolean;
-      minifySpecified: boolean;
-      noConfig: boolean;
-      outputPath?: string;
-      pageSize?: string;
-      stdout: boolean;
-      stdin: boolean;
-      strict: boolean;
-      strictSpecified: boolean;
-      subtitle?: string;
-      summaryJsonPath?: string;
-      tableOfContents: boolean;
-      tableOfContentsSpecified: boolean;
-      theme?: ThemeName;
-      title?: string;
-      watch: boolean;
-    }
+  | (CliRenderOptions & { kind: "inspect"; json: true })
+  | (CliRenderOptions & { kind: "render" })
   | { kind: "version" };
 
 export class CliUsageError extends Error {
@@ -56,12 +58,14 @@ export class CliStrictModeError extends CliUsageError {
 }
 
 export function parseCliArgs(argv: string[]): CliCommand {
+  const isInspect = argv[0] === "inspect";
+  const args = isInspect ? argv.slice(1) : argv;
   let parsed: ReturnType<typeof parseArgs>;
 
   try {
     parsed = parseArgs({
       allowPositionals: true,
-      args: argv,
+      args,
       options: {
         browser: {
           type: "string"
@@ -77,6 +81,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
         },
         help: {
           short: "h",
+          type: "boolean"
+        },
+        json: {
           type: "boolean"
         },
         css: {
@@ -161,6 +168,18 @@ export function parseCliArgs(argv: string[]): CliCommand {
     return { kind: "version" };
   }
 
+  if (isInspect && parsed.values.json !== true) {
+    throw new CliUsageError("Inspect mode requires --json.");
+  }
+
+  if (!isInspect && parsed.values.json === true) {
+    throw new CliUsageError("Use --json with the inspect subcommand.");
+  }
+
+  if (isInspect && parsed.values.watch === true) {
+    throw new CliUsageError("Inspect mode does not support --watch.");
+  }
+
   if (parsed.values.toc === true && parsed.values["no-toc"] === true) {
     throw new CliUsageError("Do not pass --toc with --no-toc.");
   }
@@ -185,7 +204,7 @@ export function parseCliArgs(argv: string[]): CliCommand {
     throw new CliUsageError("Expected exactly one Markdown input file.");
   }
 
-  return {
+  const command = {
     assetDirectory: getAssetDirectoryOption(parsed.values["asset-dir"], "--asset-dir"),
     browserPath: getStringOption(parsed.values.browser),
     configPath: getStringOption(parsed.values.config),
@@ -213,6 +232,19 @@ export function parseCliArgs(argv: string[]): CliCommand {
     theme: getThemeOption(parsed.values.theme),
     title: getStringOption(parsed.values.title),
     watch: parsed.values.watch === true
+  };
+
+  if (isInspect) {
+    return {
+      ...command,
+      json: true,
+      kind: "inspect"
+    };
+  }
+
+  return {
+    ...command,
+    kind: "render"
   };
 }
 

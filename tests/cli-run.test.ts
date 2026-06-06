@@ -130,6 +130,143 @@ describe("runCli", () => {
     });
   });
 
+  it("inspects a Markdown file as JSON without writing output", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const imagePath = path.join(temporaryDirectory, "images", "diagram.png");
+    const outputPath = path.join(temporaryDirectory, "dist", "brief.html");
+    const output = createBufferedOutput();
+    const errors = createBufferedOutput();
+
+    await mkdir(path.dirname(imagePath), { recursive: true });
+    await writeFile(imagePath, "image-bytes", "utf8");
+    await writeFile(
+      inputPath,
+      [
+        "---",
+        "title: Agent Brief",
+        "unknown: ignored",
+        "---",
+        "# Body Title",
+        "",
+        "![Diagram](images/diagram.png)",
+        "![Missing](images/missing.png)",
+        "![Remote](https://example.com/image.png)",
+        "",
+        "## Details"
+      ].join("\n"),
+      "utf8"
+    );
+
+    const exitCode = await runCli(
+      [
+        "inspect",
+        "brief.md",
+        "--json",
+        "--output",
+        "dist/brief.html",
+        "--asset-dir",
+        "assets",
+        "--theme",
+        "report"
+      ],
+      {
+        cwd: temporaryDirectory,
+        stderr: errors,
+        stdout: output
+      }
+    );
+
+    const inspection = JSON.parse(output.value) as InspectionJson;
+
+    expect(exitCode).toBe(0);
+    expect(errors.value).toBe("");
+    await expect(readFile(outputPath, "utf8")).rejects.toThrow();
+    expect(inspection).toMatchObject({
+      config: {
+        defaultsLoaded: false,
+        path: null
+      },
+      document: {
+        metadata: {
+          title: "Agent Brief"
+        },
+        title: {
+          source: "metadata",
+          value: "Agent Brief"
+        }
+      },
+      input: {
+        mode: "file",
+        path: inputPath
+      },
+      package: {
+        name: "towel-txt"
+      },
+      renderPlan: {
+        assetDirectory: "assets",
+        canRender: true,
+        blockers: [],
+        format: "html",
+        outputPath,
+        theme: "report"
+      },
+      schemaVersion: 1
+    });
+    expect(inspection.document.headings).toEqual([
+      { id: "body-title", level: 1, line: 5, text: "Body Title" },
+      { id: "details", level: 2, line: 11, text: "Details" }
+    ]);
+    expect(inspection.images).toEqual([
+      {
+        exists: true,
+        path: imagePath,
+        source: "images/diagram.png",
+        status: "local"
+      },
+      {
+        exists: false,
+        path: path.join(temporaryDirectory, "images", "missing.png"),
+        source: "images/missing.png",
+        status: "local"
+      },
+      {
+        exists: false,
+        path: null,
+        reason: "remote or protocol-based image source",
+        source: "https://example.com/image.png",
+        status: "skipped"
+      }
+    ]);
+    expect(inspection.warnings).toEqual([
+      'Warning: unsupported metadata field "unknown" was ignored.',
+      'Warning: image asset "images/missing.png" is missing.',
+      'Warning: image asset "https://example.com/image.png" was skipped: remote or protocol-based image source'
+    ]);
+  });
+
+  it("reports render blockers in inspect JSON", async () => {
+    const output = createBufferedOutput();
+
+    const exitCode = await runCli(["inspect", "--stdin", "--json"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdin: Readable.from(["Plain paragraph."]),
+      stdout: output
+    });
+
+    const inspection = JSON.parse(output.value) as InspectionJson;
+
+    expect(exitCode).toBe(0);
+    expect(inspection.renderPlan).toMatchObject({
+      canRender: false,
+      outputPath: null
+    });
+    expect(inspection.renderPlan.blockers).toEqual([
+      "Expected --output or --stdout when reading from stdin.",
+      "Expected --title, front matter title, or H1 when reading from stdin."
+    ]);
+  });
+
   it("refuses to overwrite an existing summary file without --force", async () => {
     const inputPath = path.join(temporaryDirectory, "brief.md");
     const errors = createBufferedOutput();
@@ -1028,3 +1165,36 @@ function createBufferedOutput(): { value: string; write: (chunk: string) => bool
     }
   };
 }
+
+type InspectionJson = {
+  config: {
+    defaultsLoaded: boolean;
+    path: string | null;
+  };
+  document: {
+    headings: unknown[];
+    metadata: Record<string, unknown>;
+    title: {
+      source: string;
+      value: string;
+    };
+  };
+  images: unknown[];
+  input: {
+    mode: string;
+    path: string | null;
+  };
+  package: {
+    name: string;
+  };
+  renderPlan: {
+    assetDirectory?: string | null;
+    blockers: string[];
+    canRender: boolean;
+    format?: string;
+    outputPath: string | null;
+    theme?: string | null;
+  };
+  schemaVersion: number;
+  warnings: string[];
+};

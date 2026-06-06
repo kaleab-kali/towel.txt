@@ -6,6 +6,7 @@ This reference documents the `towel-txt` command-line interface.
 
 ```bash
 towel-txt <input.md> [--output output.html] [--title "Document Title"]
+towel-txt inspect <input.md> --json
 towel-txt <input.md> --format pdf --output output.pdf
 towel-txt <input.md> --watch [--output output.html]
 towel-txt --stdin --stdout [--title "Document Title"]
@@ -13,6 +14,9 @@ towel-txt --stdin --stdout [--title "Document Title"]
 
 Use `towel-txt --help` to print the built-in help text and
 `towel-txt --version` to print the package name and version.
+
+Use `towel-txt inspect <input.md> --json` to inspect a document and planned
+render settings without writing output.
 
 ## Inputs
 
@@ -74,6 +78,7 @@ when the browser executable is not on the default search path.
 | `--css <path>`          | Append a custom CSS file to the default document styles.                                                                                                          |
 | `--force`               | Overwrite an existing output file or summary JSON file. Output paths still cannot replace the input Markdown file.                                                |
 | `--format <type>`       | Select `html` or `pdf`. Defaults to `html` unless the output path ends in `.pdf`.                                                                                 |
+| `--json`                | Write machine-readable JSON for the `inspect` command.                                                                                                            |
 | `--margin <value>`      | Set print margin, for example `0.75in` or `18mm`.                                                                                                                 |
 | `--minify`              | Remove formatting whitespace from generated HTML. Cannot be combined with `--no-minify`.                                                                          |
 | `--no-config`           | Disable default config discovery. Cannot be combined with `--config`.                                                                                             |
@@ -154,6 +159,17 @@ Render printable HTML:
 ```bash
 towel-txt brief.md --output brief.html
 ```
+
+Inspect a document before rendering:
+
+```bash
+towel-txt inspect brief.md --json --output brief.html
+```
+
+The inspection JSON includes package metadata, input details, config loading
+state, front matter metadata, title source, heading list, image diagnostics,
+warnings, and a render plan with blockers. It does not write HTML, PDF, copied
+assets, or summary files.
 
 Render with custom CSS:
 
