@@ -194,6 +194,35 @@ describe("parseCliArgs", () => {
     });
   });
 
+  it("parses doctor JSON mode", () => {
+    expect(parseCliArgs(["doctor", "--json"])).toEqual({
+      json: true,
+      kind: "doctor",
+      noConfig: false
+    });
+  });
+
+  it("parses doctor JSON mode with environment options", () => {
+    expect(
+      parseCliArgs([
+        "doctor",
+        "--json",
+        "--browser",
+        "chrome",
+        "--config",
+        "towel-txt.config.yaml",
+        "--error-json"
+      ])
+    ).toEqual({
+      browserPath: "chrome",
+      configPath: "towel-txt.config.yaml",
+      errorJson: true,
+      json: true,
+      kind: "doctor",
+      noConfig: false
+    });
+  });
+
   it("parses an explicit table of contents enablement", () => {
     expect(parseCliArgs(["doc.md", "--toc"])).toMatchObject({
       tableOfContents: true,
@@ -256,7 +285,19 @@ describe("parseCliArgs", () => {
     expect(() => parseCliArgs(["inspect", "doc.md"])).toThrow(CliUsageError);
   });
 
-  it("fails when JSON output is used outside inspect mode", () => {
+  it("fails when doctor mode is missing JSON output", () => {
+    expect(() => parseCliArgs(["doctor"])).toThrow(CliUsageError);
+  });
+
+  it("fails when doctor mode receives an input file", () => {
+    expect(() => parseCliArgs(["doctor", "doc.md", "--json"])).toThrow(CliUsageError);
+  });
+
+  it("fails when doctor mode receives render-only options", () => {
+    expect(() => parseCliArgs(["doctor", "--json", "--output", "doc.html"])).toThrow(CliUsageError);
+  });
+
+  it("fails when JSON output is used outside doctor and inspect mode", () => {
     expect(() => parseCliArgs(["doc.md", "--json"])).toThrow(CliUsageError);
   });
 

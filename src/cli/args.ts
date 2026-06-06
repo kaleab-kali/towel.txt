@@ -35,7 +35,17 @@ export interface CliRenderOptions {
   watch: boolean;
 }
 
+export interface CliDoctorCommand {
+  browserPath?: string;
+  configPath?: string;
+  errorJson?: boolean;
+  json: true;
+  kind: "doctor";
+  noConfig: boolean;
+}
+
 export type CliCommand =
+  | CliDoctorCommand
   | { kind: "help" }
   | (CliRenderOptions & { kind: "inspect"; json: true })
   | (CliRenderOptions & { kind: "render" })
@@ -59,8 +69,9 @@ export class CliStrictModeError extends CliUsageError {
 }
 
 export function parseCliArgs(argv: string[]): CliCommand {
+  const isDoctor = argv[0] === "doctor";
   const isInspect = argv[0] === "inspect";
-  const args = isInspect ? argv.slice(1) : argv;
+  const args = isDoctor || isInspect ? argv.slice(1) : argv;
   let parsed: ReturnType<typeof parseArgs>;
 
   try {
@@ -172,16 +183,37 @@ export function parseCliArgs(argv: string[]): CliCommand {
     return { kind: "version" };
   }
 
-  if (isInspect && parsed.values.json !== true) {
-    throw new CliUsageError("Inspect mode requires --json.");
+  if ((isDoctor || isInspect) && parsed.values.json !== true) {
+    throw new CliUsageError(`${isDoctor ? "Doctor" : "Inspect"} mode requires --json.`);
   }
 
-  if (!isInspect && parsed.values.json === true) {
-    throw new CliUsageError("Use --json with the inspect subcommand.");
+  if (!isDoctor && !isInspect && parsed.values.json === true) {
+    throw new CliUsageError("Use --json with the doctor or inspect subcommand.");
   }
 
   if (isInspect && parsed.values.watch === true) {
     throw new CliUsageError("Inspect mode does not support --watch.");
+  }
+
+  if (isDoctor) {
+    if (parsed.positionals.length > 0) {
+      throw new CliUsageError("Doctor mode does not accept an input file.");
+    }
+
+    if (hasDoctorUnsupportedOptions(parsed.values)) {
+      throw new CliUsageError(
+        "Doctor mode only supports --browser, --config, --no-config, --json, and --error-json."
+      );
+    }
+
+    return {
+      browserPath: getStringOption(parsed.values.browser),
+      configPath: getStringOption(parsed.values.config),
+      ...(parsed.values["error-json"] === true ? { errorJson: true } : {}),
+      json: true,
+      kind: "doctor",
+      noConfig: parsed.values["no-config"] === true
+    };
   }
 
   if (parsed.values.toc === true && parsed.values["no-toc"] === true) {
@@ -251,6 +283,33 @@ export function parseCliArgs(argv: string[]): CliCommand {
     ...command,
     kind: "render"
   };
+}
+
+function hasDoctorUnsupportedOptions(values: ReturnType<typeof parseArgs>["values"]): boolean {
+  return Boolean(
+    values.cover ||
+    values.css ||
+    values.force ||
+    values.format ||
+    values.margin ||
+    values.minify ||
+    values.output ||
+    values["asset-dir"] ||
+    values["no-cover"] ||
+    values["no-minify"] ||
+    values["no-strict"] ||
+    values["no-toc"] ||
+    values["page-size"] ||
+    values.stdin ||
+    values.stdout ||
+    values.strict ||
+    values.subtitle ||
+    values["summary-json"] ||
+    values.theme ||
+    values.title ||
+    values.toc ||
+    values.watch
+  );
 }
 
 function getThemeOption(value: unknown): ThemeName | undefined {

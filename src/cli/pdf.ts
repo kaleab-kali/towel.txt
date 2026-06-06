@@ -20,7 +20,7 @@ export async function printHtmlToPdf({
   html,
   outputPath
 }: PdfPrintOptions): Promise<void> {
-  const browserExecutable = browserPath ?? (await findBrowserExecutable());
+  const browserExecutable = await findPdfBrowserExecutable(browserPath);
 
   if (!browserExecutable) {
     throw new CliUsageError(
@@ -38,6 +38,20 @@ export async function printHtmlToPdf({
   } finally {
     await rm(temporaryDirectory, { force: true, recursive: true });
   }
+}
+
+export async function findPdfBrowserExecutable(
+  browserPath: string | undefined
+): Promise<string | undefined> {
+  if (!browserPath) {
+    return findBrowserExecutable();
+  }
+
+  if (path.isAbsolute(browserPath) || browserPath.includes("/") || browserPath.includes("\\")) {
+    return (await fileExists(browserPath)) ? browserPath : undefined;
+  }
+
+  return findOnPath(browserPath);
 }
 
 export function addBaseHref(html: string, basePath: string | undefined): string {

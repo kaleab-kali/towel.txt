@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kaleab-kali/towel.txt/schemas/doctor.schema.json",
+  "title": "Towel.txt Doctor Output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["checks", "ok", "package", "schemaVersion"],
+  "properties": {
+    "checks": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["message", "name", "status"],
+        "properties": {
+          "expected": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "name": {
+            "enum": ["config", "node", "pdf-browser"]
+          },
+          "path": {
+            "type": ["string", "null"]
+          },
+          "status": {
+            "enum": ["fail", "pass", "skip", "warn"]
+          },
+          "value": {
+            "type": ["string", "null"]
+          }
+        }
+      }
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {
+          "const": "towel-txt"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "schemaVersion": {
+      "const": 1
+    }
+  }
+}

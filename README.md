@@ -17,6 +17,7 @@ pulling in a large publishing system.
 - Insert explicit print page breaks.
 - Copy safe local image assets beside HTML output.
 - Add custom CSS on top of the built-in document styles.
+- Check local runtime, config, and PDF browser readiness as JSON.
 - Inspect Markdown inputs as JSON before rendering.
 - Validate machine-readable outputs with published JSON schemas.
 - Use strict mode and JSON summaries in CI scripts.
@@ -67,6 +68,16 @@ towel-txt --version
 ```
 
 For the full command reference, see [docs/cli-reference.md](docs/cli-reference.md).
+
+Check whether the local environment is ready for rendering:
+
+```bash
+towel-txt doctor --json
+```
+
+The doctor report checks Node.js support, config loading, and PDF browser
+availability. Missing PDF browser support is reported as a warning unless a
+specific browser path was configured, so HTML workflows can keep running.
 
 Inspect a document without writing output:
 
@@ -122,8 +133,8 @@ Write a machine-readable render summary:
 towel-txt report.md --output report.html --summary-json summary.json
 ```
 
-JSON schemas for config, render summaries, inspection output, and structured
-errors are published in [schemas](schemas).
+JSON schemas for config, doctor reports, render summaries, inspection output,
+and structured errors are published in [schemas](schemas).
 
 Fail the command when warnings are detected:
 
