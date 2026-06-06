@@ -6,6 +6,7 @@ This reference documents the `towel-txt` command-line interface.
 
 ```bash
 towel-txt <input.md> [--output output.html] [--title "Document Title"]
+towel-txt doctor --json
 towel-txt inspect <input.md> --json
 towel-txt <input.md> --format pdf --output output.pdf
 towel-txt <input.md> --watch [--output output.html]
@@ -14,6 +15,9 @@ towel-txt --stdin --stdout [--title "Document Title"]
 
 Use `towel-txt --help` to print the built-in help text and
 `towel-txt --version` to print the package name and version.
+
+Use `towel-txt doctor --json` to check local runtime, config, and PDF browser
+readiness as machine-readable JSON.
 
 Use `towel-txt inspect <input.md> --json` to inspect a document and planned
 render settings without writing output.
@@ -79,7 +83,7 @@ when the browser executable is not on the default search path.
 | `--error-json`          | Write command errors to stderr as machine-readable JSON. Human-readable errors remain the default.                                                                |
 | `--force`               | Overwrite an existing output file or summary JSON file. Output paths still cannot replace the input Markdown file.                                                |
 | `--format <type>`       | Select `html` or `pdf`. Defaults to `html` unless the output path ends in `.pdf`.                                                                                 |
-| `--json`                | Write machine-readable JSON for the `inspect` command.                                                                                                            |
+| `--json`                | Write machine-readable JSON for the `doctor` or `inspect` command.                                                                                                |
 | `--margin <value>`      | Set print margin, for example `0.75in` or `18mm`.                                                                                                                 |
 | `--minify`              | Remove formatting whitespace from generated HTML. Cannot be combined with `--no-minify`.                                                                          |
 | `--no-config`           | Disable default config discovery. Cannot be combined with `--config`.                                                                                             |
@@ -160,6 +164,18 @@ Render printable HTML:
 ```bash
 towel-txt brief.md --output brief.html
 ```
+
+Check local rendering readiness:
+
+```bash
+towel-txt doctor --json
+```
+
+The doctor JSON includes package metadata, Node.js support, config loading
+state, and PDF browser availability. The command exits with code `0` when all
+checks pass or only warnings are present. It exits with code `2` when any check
+fails, such as an invalid config file or a configured browser path that cannot
+be found.
 
 Inspect a document before rendering:
 
@@ -249,9 +265,11 @@ metadata should fail the job.
 The npm package includes JSON schemas for machine-readable contracts:
 
 - `schemas/config.schema.json`
+- `schemas/doctor.schema.json`
 - `schemas/error.schema.json`
 - `schemas/inspect.schema.json`
 - `schemas/render-summary.schema.json`
 
-Use these schemas to validate config files, `--error-json` stderr output,
-`inspect --json` stdout output, and `--summary-json` render summaries.
+Use these schemas to validate config files, `doctor --json` stdout output,
+`--error-json` stderr output, `inspect --json` stdout output, and
+`--summary-json` render summaries.

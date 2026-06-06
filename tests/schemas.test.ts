@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const schemaFiles = [
   "config.schema.json",
+  "doctor.schema.json",
   "error.schema.json",
   "inspect.schema.json",
   "render-summary.schema.json"

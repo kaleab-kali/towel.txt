@@ -267,6 +267,97 @@ describe("runCli", () => {
     ]);
   });
 
+  it("checks the local environment as doctor JSON", async () => {
+    const output = createBufferedOutput();
+    const errors = createBufferedOutput();
+
+    const exitCode = await runCli(["doctor", "--json"], {
+      cwd: temporaryDirectory,
+      stderr: errors,
+      stdout: output
+    });
+    const report = JSON.parse(output.value) as DoctorJson;
+    const nodeCheck = report.checks.find((check) => check.name === "node");
+    const configCheck = report.checks.find((check) => check.name === "config");
+    const browserCheck = report.checks.find((check) => check.name === "pdf-browser");
+
+    expect(exitCode).toBe(0);
+    expect(errors.value).toBe("");
+    expect(report).toMatchObject({
+      ok: true,
+      package: {
+        name: "towel-txt"
+      },
+      schemaVersion: 1
+    });
+    expect(nodeCheck).toMatchObject({
+      expected: ">=20",
+      status: "pass"
+    });
+    expect(configCheck).toMatchObject({
+      path: null,
+      status: "pass"
+    });
+    expect(browserCheck?.expected).toBe("Chrome, Edge, or Chromium");
+    expect(["pass", "warn"]).toContain(browserCheck?.status);
+  });
+
+  it("reports disabled config discovery in doctor JSON", async () => {
+    const output = createBufferedOutput();
+
+    const exitCode = await runCli(["doctor", "--json", "--no-config"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: output
+    });
+    const report = JSON.parse(output.value) as DoctorJson;
+    const configCheck = report.checks.find((check) => check.name === "config");
+
+    expect(exitCode).toBe(0);
+    expect(configCheck).toMatchObject({
+      path: null,
+      status: "skip"
+    });
+  });
+
+  it("fails doctor JSON when an explicit browser is missing", async () => {
+    const output = createBufferedOutput();
+
+    const exitCode = await runCli(["doctor", "--json", "--browser", "tools/missing-browser.exe"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: output
+    });
+    const report = JSON.parse(output.value) as DoctorJson;
+    const browserCheck = report.checks.find((check) => check.name === "pdf-browser");
+
+    expect(exitCode).toBe(cliExitCodes.usageError);
+    expect(report.ok).toBe(false);
+    expect(browserCheck).toMatchObject({
+      message: "Configured PDF browser was not found.",
+      status: "fail"
+    });
+  });
+
+  it("fails doctor JSON when an explicit config file is invalid", async () => {
+    const output = createBufferedOutput();
+
+    const exitCode = await runCli(["doctor", "--json", "--config", "missing.yaml"], {
+      cwd: temporaryDirectory,
+      stderr: createBufferedOutput(),
+      stdout: output
+    });
+    const report = JSON.parse(output.value) as DoctorJson;
+    const configCheck = report.checks.find((check) => check.name === "config");
+
+    expect(exitCode).toBe(cliExitCodes.usageError);
+    expect(report.ok).toBe(false);
+    expect(configCheck).toMatchObject({
+      status: "fail"
+    });
+    expect(configCheck?.message).toContain("Config file not found:");
+  });
+
   it("refuses to overwrite an existing summary file without --force", async () => {
     const inputPath = path.join(temporaryDirectory, "brief.md");
     const errors = createBufferedOutput();
@@ -1249,6 +1340,22 @@ type InspectionJson = {
   };
   schemaVersion: number;
   warnings: string[];
+};
+
+type DoctorJson = {
+  checks: Array<{
+    expected?: string;
+    message: string;
+    name: string;
+    path?: string | null;
+    status: string;
+    value?: string | null;
+  }>;
+  ok: boolean;
+  package: {
+    name: string;
+  };
+  schemaVersion: number;
 };
 
 type ErrorJson = {

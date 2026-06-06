@@ -13,6 +13,7 @@ import {
   CliStrictModeError,
   CliUsageError,
   type CliCommand,
+  type CliDoctorCommand,
   type CliRenderOptions,
   type OutputFormat,
   parseCliArgs
@@ -20,7 +21,7 @@ import {
 import { copyLocalImageAssets, type ImageAssetCopyResult } from "./assets.js";
 import { type CliConfigDefaults, type LoadedCliConfig, loadCliConfig } from "./config.js";
 import { cliExitCodes, type CliExitCode } from "./exit-codes.js";
-import { type PdfPrintOptions, printHtmlToPdf } from "./pdf.js";
+import { findPdfBrowserExecutable, type PdfPrintOptions, printHtmlToPdf } from "./pdf.js";
 import { getImageAssetWarning, getImageAssetWarnings, writeRenderSummary } from "./summary.js";
 import { type WatchFilesOptions, watchFiles } from "./watch.js";
 
@@ -51,6 +52,11 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
     }
 
     useJsonErrors = parsedCommand.errorJson === true;
+
+    if (parsedCommand.kind === "doctor") {
+      const ok = await doctorCommand({ command: parsedCommand, io });
+      return ok ? cliExitCodes.success : cliExitCodes.usageError;
+    }
 
     const loadedConfig = await loadCliConfig({
       configPath: parsedCommand.configPath,
@@ -148,6 +154,183 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
 
 type RenderCommand = Extract<CliCommand, { kind: "render" }>;
 type InspectCommand = Extract<CliCommand, { kind: "inspect" }>;
+type DoctorCheckStatus = "fail" | "pass" | "skip" | "warn";
+
+interface DoctorCheck {
+  expected?: string;
+  message: string;
+  name: "config" | "node" | "pdf-browser";
+  path?: string | null;
+  status: DoctorCheckStatus;
+  value?: string | null;
+}
+
+async function doctorCommand({
+  command,
+  io
+}: {
+  command: CliDoctorCommand;
+  io: CliIo;
+}): Promise<boolean> {
+  const configResult = await getConfigDoctorResult(command, io.cwd);
+  const checks = [
+    getNodeDoctorCheck(),
+    configResult.check,
+    await getPdfBrowserDoctorCheck({
+      command,
+      cwd: io.cwd,
+      loadedConfig: configResult.loadedConfig
+    })
+  ];
+  const ok = checks.every((check) => check.status !== "fail");
+
+  io.stdout.write(
+    `${JSON.stringify(
+      {
+        checks,
+        ok,
+        package: {
+          name: packageName,
+          version: packageVersion
+        },
+        schemaVersion: 1
+      },
+      null,
+      2
+    )}\n`
+  );
+
+  return ok;
+}
+
+function getNodeDoctorCheck(): DoctorCheck {
+  const majorVersion = Number.parseInt(process.versions.node.split(".")[0] ?? "", 10);
+
+  if (Number.isNaN(majorVersion) || majorVersion < 20) {
+    return {
+      expected: ">=20",
+      message: "Node.js 20 or newer is required.",
+      name: "node",
+      status: "fail",
+      value: process.versions.node
+    };
+  }
+
+  return {
+    expected: ">=20",
+    message: "Node.js version is supported.",
+    name: "node",
+    status: "pass",
+    value: process.versions.node
+  };
+}
+
+async function getConfigDoctorResult(
+  command: CliDoctorCommand,
+  cwd: string
+): Promise<{ check: DoctorCheck; loadedConfig?: LoadedCliConfig }> {
+  if (command.noConfig) {
+    return {
+      check: {
+        message: "Config discovery is disabled.",
+        name: "config",
+        path: null,
+        status: "skip"
+      }
+    };
+  }
+
+  try {
+    const loadedConfig = await loadCliConfig({
+      configPath: command.configPath,
+      cwd,
+      noConfig: command.noConfig
+    });
+
+    if (!loadedConfig) {
+      return {
+        check: {
+          message: "No config file found. Built-in defaults will be used.",
+          name: "config",
+          path: null,
+          status: "pass"
+        }
+      };
+    }
+
+    return {
+      check: {
+        message: "Config file loaded successfully.",
+        name: "config",
+        path: loadedConfig.path,
+        status: "pass"
+      },
+      loadedConfig
+    };
+  } catch (error) {
+    return {
+      check: {
+        message: error instanceof Error ? error.message : "Config check failed.",
+        name: "config",
+        path: command.configPath ? path.resolve(cwd, command.configPath) : null,
+        status: "fail"
+      }
+    };
+  }
+}
+
+async function getPdfBrowserDoctorCheck({
+  command,
+  cwd,
+  loadedConfig
+}: {
+  command: CliDoctorCommand;
+  cwd: string;
+  loadedConfig: LoadedCliConfig | undefined;
+}): Promise<DoctorCheck> {
+  const configuredBrowser = command.browserPath ?? loadedConfig?.defaults.browserPath;
+  const resolvedBrowser = resolveOptionalPath(cwd, configuredBrowser);
+
+  try {
+    const browserPath = await findPdfBrowserExecutable(resolvedBrowser);
+
+    if (browserPath) {
+      return {
+        expected: "Chrome, Edge, or Chromium",
+        message: "PDF browser executable found.",
+        name: "pdf-browser",
+        path: browserPath,
+        status: "pass"
+      };
+    }
+
+    if (configuredBrowser) {
+      return {
+        expected: "Chrome, Edge, or Chromium",
+        message: "Configured PDF browser was not found.",
+        name: "pdf-browser",
+        path: resolvedBrowser ?? null,
+        status: "fail"
+      };
+    }
+
+    return {
+      expected: "Chrome, Edge, or Chromium",
+      message: "No supported browser found for PDF export. HTML rendering still works.",
+      name: "pdf-browser",
+      path: null,
+      status: "warn"
+    };
+  } catch (error) {
+    return {
+      expected: "Chrome, Edge, or Chromium",
+      message: error instanceof Error ? error.message : "PDF browser check failed.",
+      name: "pdf-browser",
+      path: resolvedBrowser ?? null,
+      status: configuredBrowser ? "fail" : "warn"
+    };
+  }
+}
 
 function applyConfigDefaults<T extends CliRenderOptions & { kind: "inspect" | "render" }>(
   command: T,
@@ -539,6 +722,7 @@ export function getHelpText(): string {
 
 Usage:
   ${packageName} <input.md> [--output output.html] [--title "Document Title"]
+  ${packageName} doctor --json
   ${packageName} inspect <input.md> --json
   ${packageName} <input.md> --format pdf --output output.pdf
   ${packageName} <input.md> --watch [--output output.html]
@@ -552,7 +736,7 @@ Options:
       --css <path>     Append a custom CSS file to the default document styles.
       --force          Overwrite an existing output file.
       --format <type>  Output format: "html" or "pdf". Defaults to html, or pdf for .pdf outputs.
-      --json           Write machine-readable inspection output for the inspect command.
+      --json           Write machine-readable output for the doctor or inspect command.
       --margin <value> Print page margin, for example "0.75in" or "18mm".
       --minify         Remove formatting whitespace from generated HTML output.
       --no-config      Disable default config file discovery.
@@ -571,6 +755,7 @@ Options:
       --title <title>  Override the document title.
       --toc            Enable table of contents when config disables it.
       --watch          Watch input Markdown and CSS files, rebuilding file output on change.
+      --error-json     Write command errors to stderr as machine-readable JSON.
   -h, --help           Show this help message.
       --version        Show the current version.
 `;

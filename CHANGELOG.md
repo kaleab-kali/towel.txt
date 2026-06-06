@@ -15,8 +15,10 @@ Versioning.
 - Automated coverage for release preflight success and failure scenarios.
 - `inspect --json` command for agent-friendly document analysis without writing
   render output.
+- `doctor --json` command for agent-friendly environment, config, and PDF
+  browser readiness checks.
 - JSON schemas for config files, render summaries, inspect output, and
-  structured errors.
+  doctor output, and structured errors.
 - `--error-json` for machine-readable CLI errors on stderr.
 
 ### Changed
