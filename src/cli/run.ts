@@ -35,6 +35,8 @@ export interface CliIo {
 }
 
 export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promise<number> {
+  let useJsonErrors = argv.includes("--error-json");
+
   try {
     const parsedCommand = parseCliArgs(argv);
 
@@ -47,6 +49,8 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
       io.stdout.write(`${packageName} ${packageVersion}\n`);
       return cliExitCodes.success;
     }
+
+    useJsonErrors = parsedCommand.errorJson === true;
 
     const loadedConfig = await loadCliConfig({
       configPath: parsedCommand.configPath,
@@ -128,7 +132,7 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
               summaryJsonPath
             });
           } catch (error) {
-            writeCliError(io, error);
+            writeCliError(io, error, useJsonErrors);
           }
         },
         signal: io.signal
@@ -137,7 +141,7 @@ export async function runCli(argv: string[], io: CliIo = defaultCliIo()): Promis
 
     return cliExitCodes.success;
   } catch (error) {
-    writeCliError(io, error);
+    writeCliError(io, error, useJsonErrors);
     return getCliErrorExitCode(error);
   }
 }
@@ -160,6 +164,7 @@ function applyConfigDefaults<T extends CliRenderOptions & { kind: "inspect" | "r
     cover: command.coverSpecified ? command.cover : (defaults.cover ?? command.cover),
     coverSpecified: command.coverSpecified || defaults.cover !== undefined,
     cssPath: command.cssPath ?? defaults.cssPath,
+    errorJson: command.errorJson,
     format: command.format ?? defaults.format,
     margin: command.margin ?? defaults.margin,
     minify: command.minifySpecified ? command.minify : (defaults.minify ?? command.minify),
@@ -625,8 +630,28 @@ function formatStrictModeWarnings(warnings: string[]): string {
   ].join("\n");
 }
 
-function writeCliError(io: CliIo, error: unknown): void {
+function writeCliError(io: CliIo, error: unknown, json: boolean): void {
   const message = error instanceof Error ? error.message : "Unexpected error.";
+
+  if (json) {
+    io.stderr.write(
+      `${JSON.stringify(
+        {
+          error: {
+            exitCode: getCliErrorExitCode(error),
+            message,
+            name: error instanceof Error ? error.name : "Error",
+            type: getCliErrorType(error)
+          },
+          schemaVersion: 1
+        },
+        null,
+        2
+      )}\n`
+    );
+    return;
+  }
+
   const prefix = error instanceof CliUsageError ? "Usage error" : "Error";
 
   io.stderr.write(`${prefix}: ${message}\n`);
@@ -634,6 +659,18 @@ function writeCliError(io: CliIo, error: unknown): void {
   if (error instanceof CliUsageError) {
     io.stderr.write(`Run "${packageName} --help" for usage.\n`);
   }
+}
+
+function getCliErrorType(error: unknown): "render_error" | "strict_warning" | "usage_error" {
+  if (error instanceof CliStrictModeError) {
+    return "strict_warning";
+  }
+
+  if (error instanceof CliUsageError) {
+    return "usage_error";
+  }
+
+  return "render_error";
 }
 
 function getCliErrorExitCode(error: unknown): CliExitCode {

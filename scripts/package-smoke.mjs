@@ -97,6 +97,10 @@ async function assertPackageContents(tarballPath) {
     "package/CHANGELOG.md",
     "package/docs/cli-reference.md",
     "package/docs/examples.md",
+    "package/schemas/config.schema.json",
+    "package/schemas/error.schema.json",
+    "package/schemas/inspect.schema.json",
+    "package/schemas/render-summary.schema.json",
     "package/examples/report.md",
     "package/examples/images/workflow.svg"
   ];

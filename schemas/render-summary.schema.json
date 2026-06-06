@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kaleab-kali/towel.txt/schemas/render-summary.schema.json",
+  "title": "Towel.txt Render Summary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "assetDirectory",
+    "bytesWritten",
+    "format",
+    "images",
+    "inputPath",
+    "minified",
+    "outputPath",
+    "stdout",
+    "warnings"
+  ],
+  "properties": {
+    "assetDirectory": {
+      "type": ["string", "null"]
+    },
+    "bytesWritten": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "format": {
+      "enum": ["html", "pdf"]
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "status"],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "status": {
+            "enum": ["copied", "missing", "skipped"]
+          },
+          "targetSource": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "inputPath": {
+      "type": ["string", "null"]
+    },
+    "minified": {
+      "type": "boolean"
+    },
+    "outputPath": {
+      "type": ["string", "null"]
+    },
+    "stdout": {
+      "type": "boolean"
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

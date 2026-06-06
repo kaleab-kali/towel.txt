@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kaleab-kali/towel.txt/schemas/config.schema.json",
+  "title": "Towel.txt Config",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "assetDir": {
+      "type": "string"
+    },
+    "browser": {
+      "type": "string"
+    },
+    "cover": {
+      "type": "boolean"
+    },
+    "css": {
+      "type": "string"
+    },
+    "format": {
+      "enum": ["html", "pdf"]
+    },
+    "margin": {
+      "type": "string"
+    },
+    "minify": {
+      "type": "boolean"
+    },
+    "output": {
+      "type": "string"
+    },
+    "pageSize": {
+      "type": "string"
+    },
+    "strict": {
+      "type": "boolean"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "summaryJson": {
+      "type": "string"
+    },
+    "tableOfContents": {
+      "type": "boolean"
+    },
+    "theme": {
+      "enum": ["default", "compact", "report"]
+    },
+    "title": {
+      "type": "string"
+    }
+  }
+}
