@@ -18,6 +18,7 @@ pulling in a large publishing system.
 - Copy safe local image assets beside HTML output.
 - Add custom CSS on top of the built-in document styles.
 - Inspect Markdown inputs as JSON before rendering.
+- Validate machine-readable outputs with published JSON schemas.
 - Use strict mode and JSON summaries in CI scripts.
 
 ## Install
@@ -77,6 +78,12 @@ The inspection JSON reports metadata, title source, headings, image references,
 warnings, loaded config, and the render plan. This is useful for automation and
 AI agents that need to validate a document before rendering it.
 
+Return machine-readable errors for agent workflows:
+
+```bash
+towel-txt document.md --strict --error-json
+```
+
 ## Common Workflows
 
 Use a custom CSS file:
@@ -114,6 +121,9 @@ Write a machine-readable render summary:
 ```bash
 towel-txt report.md --output report.html --summary-json summary.json
 ```
+
+JSON schemas for config, render summaries, inspection output, and structured
+errors are published in [schemas](schemas).
 
 Fail the command when warnings are detected:
 

@@ -76,6 +76,7 @@ when the browser executable is not on the default search path.
 | `--config <path>`       | Load defaults from a specific YAML or JSON config file. Cannot be combined with `--no-config`.                                                                    |
 | `--cover`               | Add a cover page before the table of contents and document body. Cannot be combined with `--no-cover`.                                                            |
 | `--css <path>`          | Append a custom CSS file to the default document styles.                                                                                                          |
+| `--error-json`          | Write command errors to stderr as machine-readable JSON. Human-readable errors remain the default.                                                                |
 | `--force`               | Overwrite an existing output file or summary JSON file. Output paths still cannot replace the input Markdown file.                                                |
 | `--format <type>`       | Select `html` or `pdf`. Defaults to `html` unless the output path ends in `.pdf`.                                                                                 |
 | `--json`                | Write machine-readable JSON for the `inspect` command.                                                                                                            |
@@ -207,6 +208,12 @@ Write a JSON summary and fail on warnings:
 towel-txt brief.md --output brief.html --summary-json summary.json --strict
 ```
 
+Write errors as JSON for agent workflows:
+
+```bash
+towel-txt brief.md --output brief.html --strict --error-json
+```
+
 Use stdin and stdout:
 
 ```bash
@@ -236,3 +243,15 @@ run `towel-txt --help`.
 Strict mode turns warnings into failed commands with exit code `3`. This is
 useful in CI when missing images, skipped unsafe image sources, or invalid
 metadata should fail the job.
+
+## JSON Schemas
+
+The npm package includes JSON schemas for machine-readable contracts:
+
+- `schemas/config.schema.json`
+- `schemas/error.schema.json`
+- `schemas/inspect.schema.json`
+- `schemas/render-summary.schema.json`
+
+Use these schemas to validate config files, `--error-json` stderr output,
+`inspect --json` stdout output, and `--summary-json` render summaries.

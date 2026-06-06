@@ -77,6 +77,7 @@ function checkPackageMetadata(manifest) {
       "LICENSE",
       "CHANGELOG.md",
       "docs/**/*.md",
+      "schemas/**/*.json",
       "examples/**/*.md",
       "examples/**/*.css",
       "examples/**/*.svg",

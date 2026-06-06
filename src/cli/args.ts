@@ -12,6 +12,7 @@ export interface CliRenderOptions {
   cover: boolean;
   coverSpecified: boolean;
   cssPath?: string;
+  errorJson?: boolean;
   force: boolean;
   format?: OutputFormat;
   inputPath?: string;
@@ -88,6 +89,9 @@ export function parseCliArgs(argv: string[]): CliCommand {
         },
         css: {
           type: "string"
+        },
+        "error-json": {
+          type: "boolean"
         },
         force: {
           type: "boolean"
@@ -211,6 +215,7 @@ export function parseCliArgs(argv: string[]): CliCommand {
     cover: parsed.values.cover === true && parsed.values["no-cover"] !== true,
     coverSpecified: parsed.values.cover === true || parsed.values["no-cover"] === true,
     cssPath: getStringOption(parsed.values.css),
+    ...(parsed.values["error-json"] === true ? { errorJson: true } : {}),
     force: parsed.values.force === true,
     format: getOutputFormatOption(parsed.values.format),
     ...(parsed.positionals[0] ? { inputPath: parsed.positionals[0] } : {}),

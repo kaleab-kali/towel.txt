@@ -816,6 +816,35 @@ describe("runCli", () => {
     await expect(readFile(outputPath, "utf8")).rejects.toThrow();
   });
 
+  it("writes strict warning failures as JSON when requested", async () => {
+    const inputPath = path.join(temporaryDirectory, "brief.md");
+    const errors = createBufferedOutput();
+
+    await writeFile(inputPath, "# Brief\n\n![Missing](images/missing.png)", "utf8");
+
+    const exitCode = await runCli(
+      ["brief.md", "--output", "dist/brief.html", "--strict", "--error-json"],
+      {
+        cwd: temporaryDirectory,
+        stderr: errors,
+        stdout: createBufferedOutput()
+      }
+    );
+
+    const error = JSON.parse(errors.value) as ErrorJson;
+
+    expect(exitCode).toBe(cliExitCodes.strictWarnings);
+    expect(error).toEqual({
+      error: {
+        exitCode: cliExitCodes.strictWarnings,
+        message: expect.stringContaining("Strict mode failed with 1 warning:"),
+        name: "CliStrictModeError",
+        type: "strict_warning"
+      },
+      schemaVersion: 1
+    });
+  });
+
   it("warns when an image asset source is skipped", async () => {
     const inputPath = path.join(temporaryDirectory, "brief.md");
     const errors = createBufferedOutput();
@@ -1154,6 +1183,29 @@ describe("runCli", () => {
     expect(exitCode).toBe(cliExitCodes.usageError);
     expect(errors.value).toContain("Usage error: Expected exactly one Markdown input file.");
   });
+
+  it("writes usage errors as JSON when requested", async () => {
+    const errors = createBufferedOutput();
+
+    const exitCode = await runCli(["--error-json"], {
+      cwd: temporaryDirectory,
+      stderr: errors,
+      stdout: createBufferedOutput()
+    });
+
+    const error = JSON.parse(errors.value) as ErrorJson;
+
+    expect(exitCode).toBe(cliExitCodes.usageError);
+    expect(error).toEqual({
+      error: {
+        exitCode: cliExitCodes.usageError,
+        message: "Expected exactly one Markdown input file.",
+        name: "CliUsageError",
+        type: "usage_error"
+      },
+      schemaVersion: 1
+    });
+  });
 });
 
 function createBufferedOutput(): { value: string; write: (chunk: string) => boolean } {
@@ -1197,4 +1249,14 @@ type InspectionJson = {
   };
   schemaVersion: number;
   warnings: string[];
+};
+
+type ErrorJson = {
+  error: {
+    exitCode: number;
+    message: string;
+    name: string;
+    type: string;
+  };
+  schemaVersion: number;
 };

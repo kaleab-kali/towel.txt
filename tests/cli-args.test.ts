@@ -215,6 +215,12 @@ describe("parseCliArgs", () => {
     });
   });
 
+  it("parses JSON error output mode", () => {
+    expect(parseCliArgs(["doc.md", "--error-json"])).toMatchObject({
+      errorJson: true
+    });
+  });
+
   it("normalizes Windows separators in asset directory options", () => {
     expect(parseCliArgs(["doc.md", "--asset-dir", "assets\\images"])).toMatchObject({
       assetDirectory: "assets/images"

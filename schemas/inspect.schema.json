@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kaleab-kali/towel.txt/schemas/inspect.schema.json",
+  "title": "Towel.txt Inspect Output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "config",
+    "document",
+    "images",
+    "input",
+    "package",
+    "renderPlan",
+    "schemaVersion",
+    "warnings"
+  ],
+  "properties": {
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["defaultsLoaded", "path"],
+      "properties": {
+        "defaultsLoaded": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["headings", "metadata", "title"],
+      "properties": {
+        "headings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "level", "line", "text"],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "level": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 6
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "text": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "metadata": {
+          "type": "object"
+        },
+        "title": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "value"],
+          "properties": {
+            "source": {
+              "enum": ["cli", "fallback", "heading", "metadata"]
+            },
+            "value": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["exists", "path", "source", "status"],
+        "properties": {
+          "exists": {
+            "type": ["boolean", "null"]
+          },
+          "path": {
+            "type": ["string", "null"]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "status": {
+            "enum": ["local", "skipped"]
+          }
+        }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bytes", "lines", "mode", "path"],
+      "properties": {
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lines": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mode": {
+          "enum": ["file", "stdin"]
+        },
+        "path": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {
+          "const": "towel-txt"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "renderPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assetDirectory",
+        "blockers",
+        "canRender",
+        "cssPath",
+        "format",
+        "minified",
+        "outputPath",
+        "pageSize",
+        "pdfBrowserPath",
+        "printMargin",
+        "strict",
+        "stdout",
+        "summaryJsonPath",
+        "tableOfContents",
+        "theme"
+      ],
+      "properties": {
+        "assetDirectory": {
+          "type": ["string", "null"]
+        },
+        "blockers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "canRender": {
+          "type": "boolean"
+        },
+        "cssPath": {
+          "type": ["string", "null"]
+        },
+        "format": {
+          "enum": ["html", "pdf"]
+        },
+        "minified": {
+          "type": "boolean"
+        },
+        "outputPath": {
+          "type": ["string", "null"]
+        },
+        "pageSize": {
+          "type": ["string", "null"]
+        },
+        "pdfBrowserPath": {
+          "type": ["string", "null"]
+        },
+        "printMargin": {
+          "type": ["string", "null"]
+        },
+        "strict": {
+          "type": "boolean"
+        },
+        "stdout": {
+          "type": "boolean"
+        },
+        "summaryJsonPath": {
+          "type": ["string", "null"]
+        },
+        "tableOfContents": {
+          "type": "boolean"
+        },
+        "theme": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
