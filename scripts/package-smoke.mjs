@@ -95,6 +95,8 @@ async function assertPackageContents(tarballPath) {
     "package/README.md",
     "package/LICENSE",
     "package/CHANGELOG.md",
+    "package/docs/agent-guide.md",
+    "package/docs/api.md",
     "package/docs/cli-reference.md",
     "package/docs/examples.md",
     "package/schemas/config.schema.json",

@@ -68,6 +68,8 @@ towel-txt --version
 ```
 
 For the full command reference, see [docs/cli-reference.md](docs/cli-reference.md).
+For automation workflows, see [docs/agent-guide.md](docs/agent-guide.md). For
+package exports, see [docs/api.md](docs/api.md).
 
 Check whether the local environment is ready for rendering:
 
